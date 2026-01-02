@@ -2,8 +2,8 @@
   "mcpServers": {
     "fpl-server": {
       "command": "python3",
-      "args": ["/Users/david/code/fpl-mcp/fpl_server.py"],
-      "cwd": "/Users/david/code/fpl-mcp",
+      "args": ["/home/user/fpl-mcp/fpl_server.py"],
+      "cwd": "/home/user/fpl-mcp",
       "env": {}
     }
   }
