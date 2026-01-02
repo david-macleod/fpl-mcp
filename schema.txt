@@ -1,0 +1,239 @@
+FPL DATA SCHEMA
+================
+
+This document describes all CSV files available in the FPL dataset and their relationships.
+
+DATASET OVERVIEW
+================
+9 CSV files containing comprehensive Fantasy Premier League data:
+- General FPL data: players, teams, gameweeks, fixtures  
+- Team-specific data: team info, history, picks, chip usage
+- Historical performance: player gameweek stats
+
+FILES & SCHEMAS
+===============
+
+1. PLAYERS.CSV (737 rows, 101 columns)
+   Primary Key: id
+   Description: Complete player database with season stats and pricing
+   
+   Key Columns:
+   - id: Unique player identifier (1-736)
+   - web_name: Display name (e.g., "M.Salah")
+   - element_type: Position (1=GK, 2=DEF, 3=MID, 4=FWD)
+   - team: Team ID (1-20)
+   - now_cost: Current price in 0.1m units (e.g., 145 = £14.5m)
+   - total_points: Season points total
+   - form: Recent form rating
+   - selected_by_percent: Ownership percentage
+   - status: Availability (a=available, d=doubtful, i=injured, s=suspended)
+   
+   Performance Stats:
+   - goals_scored, assists, clean_sheets, minutes, starts
+   - expected_goals, expected_assists, influence, creativity, threat
+   - bonus, bps (bonus points system score)
+   
+   Join Keys:
+   - id → player_gameweek_stats.player_id, team_picks.element
+   - team → teams.id
+   - element_type → (1=GK, 2=DEF, 3=MID, 4=FWD)
+
+2. TEAMS.CSV (21 rows, 21 columns) 
+   Primary Key: id
+   Description: Premier League teams with strength ratings and form
+   
+   Key Columns:
+   - id: Team identifier (1-20)
+   - name: Full team name (e.g., "Arsenal")
+   - short_name: Abbreviated name (e.g., "ARS") 
+   - position: Current league table position
+   - form: Recent form indicator
+   - strength_overall_home/away: Home/away strength ratings
+   - strength_attack_home/away: Attacking strength ratings
+   - strength_defence_home/away: Defensive strength ratings
+   
+   Join Keys:
+   - id → players.team, fixtures.team_h, fixtures.team_a
+
+3. GAMEWEEKS.CSV (39 rows, 29 columns)
+   Primary Key: id  
+   Description: Season gameweeks with deadlines and statistics
+   
+   Key Columns:
+   - id: Gameweek number (1-38)
+   - name: Gameweek name (e.g., "Gameweek 1")
+   - deadline_time: Transfer deadline timestamp
+   - finished: Boolean if gameweek completed
+   - is_current, is_next: Current gameweek indicators
+   - average_entry_score: Average points scored
+   - most_captained, most_selected: Popular picks
+   
+   Join Keys:
+   - id → fixtures.event, team_history.event, team_picks.gameweek
+
+4. FIXTURES.CSV (381 rows, 17 columns)
+   Primary Key: id
+   Description: All Premier League fixtures with results and difficulty
+   
+   Key Columns:
+   - id: Unique fixture identifier  
+   - event: Gameweek number
+   - team_h, team_a: Home and away team IDs
+   - team_h_score, team_a_score: Match scores (null if not played)
+   - kickoff_time: Match kickoff timestamp
+   - finished: Boolean if match completed
+   - team_h_difficulty, team_a_difficulty: FPL difficulty ratings (1-5)
+   
+   Join Keys:
+   - event → gameweeks.id
+   - team_h, team_a → teams.id
+   - id → player_gameweek_stats.fixture
+
+5. PLAYER_GAMEWEEK_STATS.CSV (2,108 rows, 42 columns)
+   Primary Key: (player_id, round)
+   Description: Historical player performance by gameweek
+   
+   Key Columns:
+   - player_id, element: Player identifier  
+   - round: Gameweek number
+   - fixture: Fixture ID
+   - opponent_team: Opposition team ID
+   - total_points: Points scored in gameweek
+   - minutes, starts: Playing time
+   - goals_scored, assists: Key attacking stats
+   - was_home: Boolean home/away indicator
+   - value: Player price during that gameweek
+   
+   Join Keys:
+   - player_id, element → players.id
+   - round → gameweeks.id  
+   - fixture → fixtures.id
+   - opponent_team → teams.id
+
+6. TEAM_INFO.CSV (2 rows, 25 columns)
+   Primary Key: id
+   Description: Your FPL team basic information
+   
+   Key Columns:
+   - id: Team ID (6853564)
+   - player_first_name, player_last_name: Manager name
+   - name: Team name ("Generational Talents")
+   - summary_overall_points: Total season points
+   - summary_overall_rank: Current rank
+   - current_event: Current gameweek
+   
+   Join Keys:
+   - id → team_history.team_id, team_picks.team_id (implicit)
+
+7. TEAM_HISTORY.CSV (4 rows, 12 columns)  
+   Primary Key: event
+   Description: Your team's gameweek-by-gameweek performance
+   
+   Key Columns:
+   - event: Gameweek number
+   - points: Points scored that gameweek
+   - total_points: Cumulative points
+   - rank: Gameweek rank
+   - overall_rank: Overall rank after gameweek
+   - bank: Money in bank (0.1m units)
+   - value: Team value (0.1m units)
+   - event_transfers: Transfers made
+   
+   Join Keys:
+   - event → gameweeks.id
+
+8. TEAM_PICKS.CSV (46 rows, 10 columns)
+   Primary Key: (gameweek, element)
+   Description: Your team selections by gameweek
+   
+   Key Columns:
+   - element: Player ID selected
+   - gameweek: Gameweek number  
+   - position: Squad position (1-15)
+   - multiplier: Points multiplier (1=normal, 2=captain, 3=triple captain)
+   - is_captain, is_vice_captain: Captaincy indicators
+   - element_type: Player position
+   - team_id: Your team ID
+   
+   Join Keys:
+   - element → players.id
+   - gameweek → gameweeks.id
+   - team_id → team_info.id
+
+9. TEAM_CHIPS.CSV (1 row, 3 columns)
+   Primary Key: (name, event)
+   Description: Historical chip usage (currently empty)
+   
+   Key Columns:
+   - name: Chip name (wildcard, bboost, freehit, tripec)
+   - event: Gameweek when used
+   - time: Timestamp when activated
+   
+   Join Keys:
+   - event → gameweeks.id
+
+COMMON JOIN PATTERNS
+===================
+
+Player Analysis:
+players → player_gameweek_stats (players.id = player_gameweek_stats.player_id)
+players → teams (players.team = teams.id)
+
+Fixture Analysis:  
+fixtures → teams (fixtures.team_h = teams.id, fixtures.team_a = teams.id)
+fixtures → gameweeks (fixtures.event = gameweeks.id)
+fixtures → player_gameweek_stats (fixtures.id = player_gameweek_stats.fixture)
+
+Team Management:
+team_picks → players (team_picks.element = players.id)
+team_picks → gameweeks (team_picks.gameweek = gameweeks.id)
+team_history → gameweeks (team_history.event = gameweeks.id)
+
+Performance Analysis:
+player_gameweek_stats → players (player_gameweek_stats.player_id = players.id)
+player_gameweek_stats → fixtures (player_gameweek_stats.fixture = fixtures.id)
+player_gameweek_stats → teams (player_gameweek_stats.opponent_team = teams.id)
+
+REFERENCE DATA
+==============
+
+Element Types (Positions):
+1 = Goalkeeper (GK)
+2 = Defender (DEF)  
+3 = Midfielder (MID)
+4 = Forward (FWD)
+
+Team IDs (1-20):
+1=Arsenal, 2=Aston Villa, 3=Bournemouth, 4=Brentford, 5=Brighton, 
+6=Burnley, 7=Chelsea, 8=Crystal Palace, 9=Everton, 10=Fulham,
+11=Liverpool, 12=Luton, 13=Man City, 14=Man Utd, 15=Newcastle,
+16=Nott'm Forest, 17=Sheffield United, 18=Spurs, 19=West Ham, 20=Wolves
+
+Price Units:
+All costs in 0.1m units (e.g., 145 = £14.5m, 50 = £5.0m)
+
+EXAMPLE QUERIES
+===============
+
+1. Get player with fixtures:
+   SELECT p.web_name, f.team_h, f.team_a, f.kickoff_time
+   FROM players p
+   JOIN fixtures f ON f.team_h = p.team OR f.team_a = p.team
+   WHERE p.id = 302
+
+2. Analyze team picks performance:
+   SELECT tp.gameweek, p.web_name, pgs.total_points
+   FROM team_picks tp  
+   JOIN players p ON tp.element = p.id
+   JOIN player_gameweek_stats pgs ON p.id = pgs.player_id AND tp.gameweek = pgs.round
+
+3. Team value over time:
+   SELECT th.event, th.value/10 as team_value_millions, th.bank/10 as bank_millions
+   FROM team_history th
+   ORDER BY th.event
+
+DATA FRESHNESS
+==============
+Last updated: 2025-09-07 (Gameweek 3 completed)
+Update frequency: Run download_latest_data tool to refresh all data
+Source: Fantasy Premier League API (fantasy.premierleague.com)

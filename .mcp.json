@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "fpl-server": {
+      "type": "stdio",
+      "command": "python3.11",
+      "args": [
+        "/Users/david/code/fpl-mcp/fpl_server.py"
+      ],
+      "env": {}
+    }
+  }
+}

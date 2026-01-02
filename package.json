@@ -1,0 +1,18 @@
+{
+  "name": "fpl-mcp-server",
+  "version": "0.1.0",
+  "description": "Fantasy Premier League MCP Server for optimal team selection data",
+  "main": "fpl_server.py",
+  "scripts": {
+    "start": "python3 fpl_server.py"
+  },
+  "keywords": ["mcp", "fantasy", "premier-league", "fpl", "football"],
+  "author": "David",
+  "license": "MIT",
+  "dependencies": {
+    "mcp": "^1.0.0"
+  },
+  "engines": {
+    "python": ">=3.9"
+  }
+}

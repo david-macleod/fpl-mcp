@@ -1,0 +1,403 @@
+FPL ANALYSIS MODULES DOCUMENTATION
+===================================
+
+This document describes the reusable Python modules created for FPL analysis and optimization.
+
+MODULES OVERVIEW
+================
+
+1. fpl_analyzer.py - Core analysis functionality
+2. fpl_session.py - Authenticated FPL session management and transfers
+3. credentials_manager.py - Secure credential storage and management
+4. [Future modules will be documented here]
+
+fpl_analyzer.py
+===============
+
+Main analysis module providing comprehensive FPL data analysis capabilities.
+
+CLASSES
+-------
+
+FPLAnalyzer
+-----------
+Main analysis class for FPL data processing and optimization.
+
+Constructor:
+  FPLAnalyzer(data_dir="data")
+  - data_dir: Directory containing CSV files
+
+Methods:
+
+  load_data()
+  - Loads all CSV files into memory
+  - Must be called before other methods
+  - Populates: players, teams, fixtures, gameweeks, team_picks, team_history, player_stats
+
+  get_current_gameweek() -> int
+  - Returns current gameweek number
+  - Uses is_current flag from gameweeks data
+
+  get_next_gameweek() -> int  
+  - Returns next gameweek for planning purposes
+  - current_gw + 1 or current_gw if season ended
+
+  get_current_squad() -> pd.DataFrame
+  - Returns current team selection with player details
+  - Includes player names, costs, points, form, team info
+  - Sorted by position and squad position
+
+  analyze_squad_value() -> Dict
+  - Returns squad financial analysis
+  - Keys: squad_value, bank, total_value, player_count
+  - All values in millions (£)
+
+  get_upcoming_fixtures(team_id, gameweeks=5) -> pd.DataFrame
+  - Returns upcoming fixtures for specified team
+  - gameweeks: Number of gameweeks to look ahead
+  - Includes opponent, home/away, kickoff times
+
+  calculate_fixture_difficulty(team_id, gameweeks=5) -> float
+  - Calculates average fixture difficulty (1-5 scale)
+  - Based on opponent strength ratings
+  - 1 = easiest, 5 = hardest
+
+  get_form_analysis(player_id, gameweeks=5) -> Dict
+  - Analyzes player form over recent gameweeks
+  - Returns: points list, avg_points, games played, total minutes
+
+  identify_transfer_targets(position, max_cost, min_form=5.0) -> pd.DataFrame
+  - Finds potential transfer targets by position
+  - position: 1=GK, 2=DEF, 3=MID, 4=FWD
+  - max_cost: Maximum cost in millions
+  - min_form: Minimum form rating
+  - Returns sorted by form and value score
+
+  get_transfer_recommendations(max_transfers=2) -> Dict
+  - Generates transfer recommendations for problem players
+  - Identifies players with form < 2.0 or injury/suspension status
+  - Returns structured data with transfer options and costs
+  - Keys: recommendations, problem_count, bank_balance, total_cost
+  
+  print_transfer_recommendations(max_transfers=2)
+  - Prints formatted transfer recommendations
+  - Shows priority transfers with cost analysis and form improvements
+  - Includes budget warnings if transfers exceed available funds
+  - Shows instructions for executing transfers
+  
+  execute_transfers(email, password, max_transfers=2) -> Dict
+  - Automatically execute recommended transfers
+  - Requires FPL login credentials
+  - Uses fpl_session module for authenticated requests
+  - Returns transfer result or None if failed
+  
+  print_squad_summary()
+  - Prints formatted current squad analysis
+  - Shows all players by position with key stats
+  - Includes financial summary
+
+CONVENIENCE FUNCTIONS
+--------------------
+
+quick_analysis() -> FPLAnalyzer
+- Quick way to load data and print squad summary
+- Returns analyzer instance for further analysis
+
+get_recommendations(max_transfers=2) -> FPLAnalyzer
+- Quick transfer recommendations for problem players
+- Identifies and suggests replacements for low form/injured players
+- Shows cost analysis and form improvements
+- Returns analyzer instance for further analysis
+
+execute_recommended_transfers(max_transfers=2) -> Dict
+- Quick analysis and transfer execution using stored credentials
+- Combines get_recommendations() and execute_transfers()
+- Requires credentials to be set up first with setup_credentials.py
+- Returns transfer result or None if failed
+
+find_transfers(position, max_cost, min_form=5.0) -> pd.DataFrame
+- Quick transfer target finder
+- position: 'GK', 'DEF', 'MID', 'FWD'
+- Prints top 10 targets and returns full dataframe
+
+USAGE EXAMPLES
+==============
+
+Basic Analysis:
+```python
+from fpl_analyzer import quick_analysis
+analyzer = quick_analysis()
+```
+
+Transfer Target Search:
+```python
+from fpl_analyzer import find_transfers
+targets = find_transfers('MID', 8.0, 6.0)  # Midfielders under £8m with 6+ form
+```
+
+Advanced Analysis:
+```python
+from fpl_analyzer import FPLAnalyzer
+
+analyzer = FPLAnalyzer()
+analyzer.load_data()
+
+# Current squad
+squad = analyzer.get_current_squad()
+
+# Fixture analysis
+fixtures = analyzer.get_upcoming_fixtures(1, 3)  # Arsenal next 3 games
+difficulty = analyzer.calculate_fixture_difficulty(1, 5)  # Arsenal next 5 games
+
+# Player form
+form = analyzer.get_form_analysis(302, 5)  # Salah last 5 games
+
+# Transfer targets
+targets = analyzer.identify_transfer_targets(3, 100, 6.0)  # Midfielders under £10m, 6+ form
+```
+
+COMMON WORKFLOWS
+===============
+
+1. SQUAD REVIEW:
+   - quick_analysis() for overview
+   - Check player status (injuries/suspensions)
+   - Analyze upcoming fixtures for each player
+
+2. TRANSFER PLANNING:
+   - find_transfers() for each position of interest
+   - Compare fixture difficulty of current vs target players
+   - Check form trends using get_form_analysis()
+
+3. CAPTAIN SELECTION:
+   - Get current squad with get_current_squad()
+   - Analyze fixtures for next gameweek
+   - Check recent form for premium players
+
+4. CHIP TIMING:
+   - Analyze fixture difficulty across multiple gameweeks
+   - Look for favorable fixture runs for bench boost
+   - Identify double gameweeks for wildcard timing
+
+DATA REFRESH
+============
+
+Before each analysis session:
+1. Use MCP server: download_latest_data()
+2. Load fresh data with analyzer.load_data()
+3. Proceed with analysis
+
+This ensures all analysis uses the most current FPL data including:
+- Latest player prices and form
+- Recent injury/suspension updates  
+- Updated fixture schedules
+- Current gameweek status
+
+VERSION HISTORY
+===============
+
+fpl_session.py
+===============
+
+Authenticated FPL session management for making actual transfers and team changes.
+
+CLASSES
+-------
+
+FPLSession
+----------
+Manages authenticated FPL session with login and team management capabilities.
+
+Constructor:
+  FPLSession(team_id=TEAM_ID)
+  - team_id: Your FPL team ID from constants.py
+
+Methods:
+
+  async login(email, password) -> bool
+  - Authenticate with FPL website using credentials
+  - Returns True if successful, False otherwise
+  - Required before making any team changes
+  
+  async get_current_team(gameweek=None) -> Dict
+  - Get current team selection for specified gameweek
+  - If gameweek not specified, uses current gameweek
+  - Returns team picks, captain, chips, etc.
+  
+  async get_transfer_status() -> Dict
+  - Get current transfer allowance and costs
+  - Shows available free transfers and hit costs
+  
+  async make_transfers(transfers_out, transfers_in, chip=None) -> Dict
+  - Execute transfers between players
+  - transfers_out: List of player IDs to remove
+  - transfers_in: List of player IDs to add
+  - chip: Optional chip to play ('wildcard', 'freehit')
+  
+  async set_captain(player_id, vice_captain_id, gameweek=None) -> Dict
+  - Set captain and vice captain for upcoming gameweek
+  - Automatically updates team selection
+  
+  async play_chip(chip_name, gameweek=None) -> Dict
+  - Play a chip: 'wildcard', 'freehit', 'bboost', '3xc'
+  - chip_name: Name of chip to activate
+
+CONVENIENCE FUNCTIONS
+--------------------
+
+execute_transfers_sync(email, password, recommendations) -> Dict
+- Synchronous wrapper for executing transfer recommendations
+- Takes recommendations from FPLAnalyzer.get_transfer_recommendations()
+- Handles login and transfer execution automatically
+
+login_and_get_team(email, password) -> Tuple[FPLSession, Dict]
+- Quick login and retrieve current team data
+- Returns session object and team dictionary
+
+USAGE EXAMPLES
+==============
+
+Manual Transfer Execution:
+```python
+from fpl_session import FPLSession
+import asyncio
+
+async def make_transfer():
+    async with FPLSession() as session:
+        await session.login("email@example.com", "password")
+        await session.make_transfers([123], [456])  # Transfer player 123 → 456
+
+asyncio.run(make_transfer())
+```
+
+Execute Analyzer Recommendations:
+```python
+from fpl_analyzer import FPLAnalyzer
+from fpl_session import execute_transfers_sync
+
+# Get recommendations
+analyzer = FPLAnalyzer()
+analyzer.load_data()
+recommendations = analyzer.get_transfer_recommendations()
+
+# Execute them
+result = execute_transfers_sync("email@example.com", "password", 
+                               recommendations['recommendations'])
+```
+
+Integrated Workflow:
+```python
+from fpl_analyzer import FPLAnalyzer
+
+# Analyze and execute in one step
+analyzer = FPLAnalyzer()
+analyzer.load_data()
+result = analyzer.execute_transfers("email@example.com", "password")
+```
+
+SECURITY CONSIDERATIONS
+======================
+
+- Credentials are only used for authentication, not stored
+- Session cookies handle subsequent requests
+- Uses HTTPS for all FPL API communications
+- CSRF tokens automatically handled for transfers
+
+VERSION HISTORY
+===============
+
+v1.0 - Initial module with core analysis functionality
+- Basic squad analysis
+- Transfer target identification
+- Fixture difficulty calculation
+- Form analysis capabilities
+
+credentials_manager.py
+====================
+
+Secure credential storage and management for FPL login details.
+
+CLASSES
+-------
+
+CredentialsManager
+------------------
+Handles secure storage and retrieval of FPL login credentials.
+
+Constructor:
+  CredentialsManager(credentials_file=".credentials")
+  - credentials_file: Path to credentials storage file
+
+Methods:
+
+  load_credentials() -> Optional[Dict[str, str]]
+  - Load stored credentials from file
+  - Returns dict with 'username' and 'password' keys or None
+  
+  save_credentials(username, password) -> bool
+  - Save credentials to file with secure permissions
+  - Sets file permissions to 0o600 (owner read/write only)
+  - Returns True if successful
+  
+  get_credentials() -> Optional[Dict[str, str]]
+  - Get credentials, prompting user if not found
+  - Interactive fallback if no stored credentials
+  - Option to save entered credentials
+  
+  clear_credentials() -> bool
+  - Remove stored credentials file
+  - Returns True if successful
+
+CONVENIENCE FUNCTIONS
+--------------------
+
+get_fpl_credentials() -> Optional[Dict[str, str]]
+- Quick function to get credentials using global manager
+- Used by session and analyzer modules
+
+save_fpl_credentials(username, password) -> bool
+- Quick function to save credentials using global manager
+
+SETUP
+-----
+
+Initial Setup:
+```bash
+python3 setup_credentials.py
+```
+
+Manual Setup:
+```python
+from credentials_manager import save_fpl_credentials
+save_fpl_credentials("your_email@example.com", "your_password")
+```
+
+SECURITY FEATURES
+================
+
+- Credentials stored in JSON format with restrictive file permissions (600)
+- File excluded from git via .gitignore
+- No credentials stored in memory longer than necessary
+- Interactive password input uses getpass (hidden input)
+- Automatic fallback to prompt if stored credentials invalid
+
+VERSION HISTORY
+===============
+
+v1.0 - Initial module with core analysis functionality
+- Basic squad analysis
+- Transfer target identification
+- Fixture difficulty calculation
+- Form analysis capabilities
+
+v1.1 - Added authenticated session management
+- FPL login and session handling
+- Transfer execution capabilities
+- Captain and chip management
+- Integration with analysis recommendations
+
+v1.2 - Added secure credential management
+- Encrypted credential storage
+- Interactive setup and fallback
+- Integration with session management
+- Automated transfer workflows
