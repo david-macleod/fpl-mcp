@@ -61,7 +61,7 @@
 </head>
 <body>
     <h1>H2H League — Cumulative H2H Points vs League Average</h1>
-    <div class="subtitle">Season 2025/26 · GW1–GW25 · 3 pts for a win, 0 for a loss · Each line shows cumulative H2H points minus the league average</div>
+    <div class="subtitle">Season 2025/26 · GW1–GW26 · 3 pts for a win, 0 for a loss · Each line shows cumulative H2H points minus the league average</div>
     <div id="chart"></div>
 
     <table class="standings" id="standings"></table>
@@ -70,21 +70,21 @@
         // H2H points per gameweek (3 for win, 0 for loss) derived from match results
         const managers = [
             { name: "Ribeiro (The Participation Me)", color: "#ff6384",
-              h2h: [3,3,3,3,3,3,3,3,0,3,3,0,3,0,3,0,3,3,3,0,0,0,3,3,0] },
+              h2h: [3,3,3,3,3,3,3,3,0,3,3,0,3,0,3,0,3,3,3,0,0,0,3,3,0,0] },
             { name: "Clough (Clough's Crushers)", color: "#36a2eb",
-              h2h: [0,3,3,3,0,0,3,3,0,3,0,3,0,3,0,3,3,0,3,3,0,3,3,3,0] },
+              h2h: [0,3,3,3,0,0,3,3,0,3,0,3,0,3,0,3,3,0,3,3,0,3,3,3,0,0] },
             { name: "MacLeod (Fellaini's 11½)", color: "#ffce56",
-              h2h: [3,0,3,0,3,3,0,0,3,0,3,0,3,3,3,3,3,0,0,0,0,3,0,3,3] },
+              h2h: [3,0,3,0,3,3,0,0,3,0,3,0,3,3,3,3,3,0,0,0,0,3,0,3,3,3] },
             { name: "Reed (Nothing Else Matheus)", color: "#4bc0c0",
-              h2h: [0,3,0,3,0,0,0,0,3,3,0,0,3,0,0,0,3,3,0,3,3,3,0,3,0] },
+              h2h: [0,3,0,3,0,0,0,0,3,3,0,0,3,0,0,0,3,3,0,3,3,3,0,3,0,0] },
             { name: "Claude-ai (Generational Talents)", color: "#00ff88",
-              h2h: [3,0,0,0,3,3,3,3,3,3,0,3,0,3,3,0,0,0,0,0,3,0,0,0,3] },
+              h2h: [3,0,0,0,3,3,3,3,3,3,0,3,0,3,3,0,0,0,0,0,3,0,0,0,3,0] },
             { name: "Farrington (The Full English)", color: "#ff9f40",
-              h2h: [3,0,0,3,3,0,0,0,3,0,3,3,0,0,3,0,0,3,3,3,0,0,3,0,0] },
+              h2h: [3,0,0,3,3,0,0,0,3,0,3,3,0,0,3,0,0,3,3,3,0,0,3,0,0,3] },
             { name: "Fernandes (Artekkers)", color: "#c792ea",
-              h2h: [0,3,3,0,0,0,0,3,0,0,3,0,0,3,0,3,0,3,3,0,3,0,0,0,3] },
+              h2h: [0,3,3,0,0,0,0,3,0,0,3,0,0,3,0,3,0,3,3,0,3,0,0,0,3,3] },
             { name: "Asmat (Botman Begins)", color: "#f78c6c",
-              h2h: [0,0,0,0,0,3,3,0,0,0,0,3,3,0,0,3,0,0,0,3,3,3,3,0,3] }
+              h2h: [0,0,0,0,0,3,3,0,0,0,0,3,3,0,0,3,0,0,0,3,3,3,3,0,3,3] }
         ];
 
         const numGW = managers[0].h2h.length;
@@ -192,7 +192,7 @@
         let tableHTML = `
             <tr><th></th><th>Manager</th><th>H2H Pts</th><th>W-L</th><th>vs Avg</th><th>Best Streak</th><th>Worst Streak</th><th>Last 5</th></tr>
         `;
-        const overallAvg = 25 * 1.5; // 37.5
+        const overallAvg = numGW * 1.5;
 
         for (const m of standingsData) {
             const diff = m.total - overallAvg;
