@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>White Goods Delivery Orders</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --success: #16a34a;
+      --warning: #d97706;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 16px 0;
+      margin-bottom: 24px;
+    }
+
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    header h1 { font-size: 1.3rem; }
+
+    .setup-banner {
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .setup-banner input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: var(--danger-hover); }
+    .btn-secondary { background: var(--border); color: var(--text); }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+
+    select {
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      background: white;
+    }
+
+    .order-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .order-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      cursor: pointer;
+      transition: box-shadow 0.15s;
+    }
+
+    .order-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+    .order-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .order-id { font-weight: 600; font-size: 0.85rem; color: var(--text-muted); }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-scheduled { background: #dbeafe; color: #1e40af; }
+    .badge-delivered { background: #dcfce7; color: #166534; }
+    .badge-cancelled { background: #fee2e2; color: #991b1b; }
+
+    .order-recipient { font-weight: 600; font-size: 1.05rem; }
+    .order-item { color: var(--text-muted); }
+    .order-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 16px;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 100%;
+      max-width: 560px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+
+    .modal h2 { margin-bottom: 16px; font-size: 1.2rem; }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+
+    .form-group textarea { resize: vertical; min-height: 60px; }
+
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .form-actions .btn-danger { margin-right: auto; }
+
+    .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+    .empty { text-align: center; padding: 40px; color: var(--text-muted); }
+
+    @media (max-width: 600px) {
+      .modal { padding: 16px; }
+      .form-actions { flex-direction: column; }
+      .form-actions button { width: 100%; }
+      .form-actions .btn-danger { margin-right: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>White Goods Delivery Orders</h1>
+    <button class="btn-primary" onclick="openNewOrder()">+ New Order</button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="setupBanner" class="setup-banner" style="display:none;">
+    <strong>Setup Required</strong>
+    <p>Paste your Google Apps Script Web App URL below. See the README for setup instructions.</p>
+    <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/XXXX/exec"
+           onchange="saveApiUrl(this.value)">
+    <button class="btn-primary btn-sm" style="margin-top:8px;" onclick="saveApiUrl(document.getElementById('apiUrlInput').value)">Save</button>
+  </div>
+
+  <div class="toolbar">
+    <label>Filter:&nbsp;</label>
+    <select id="statusFilter" onchange="loadOrders()">
+      <option value="all">All</option>
+      <option value="Pending">Pending</option>
+      <option value="Scheduled">Scheduled</option>
+      <option value="Delivered">Delivered</option>
+      <option value="Cancelled">Cancelled</option>
+    </select>
+    <button class="btn-secondary btn-sm" onclick="loadOrders()">Refresh</button>
+  </div>
+
+  <div id="orderList" class="order-list">
+    <div class="loading">Loading orders...</div>
+  </div>
+</div>
+
+<!-- Order Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle">New Order</h2>
+    <form id="orderForm" onsubmit="return saveOrder(event)">
+      <input type="hidden" id="orderId">
+
+      <div class="form-group">
+        <label>Status</label>
+        <select id="orderStatus">
+          <option value="Pending">Pending</option>
+          <option value="Scheduled">Scheduled</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Recipient Name *</label>
+        <input type="text" id="recipientName" required>
+      </div>
+
+      <div class="form-group">
+        <label>Phone</label>
+        <input type="tel" id="recipientPhone">
+      </div>
+
+      <div class="form-group">
+        <label>Address</label>
+        <textarea id="recipientAddress"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Postcode</label>
+        <input type="text" id="recipientPostcode">
+      </div>
+
+      <div class="form-group">
+        <label>Item Type *</label>
+        <select id="itemType" required>
+          <option value="">-- Select --</option>
+          <option value="Washing Machine">Washing Machine</option>
+          <option value="Fridge">Fridge</option>
+          <option value="Fridge Freezer">Fridge Freezer</option>
+          <option value="Freezer">Freezer</option>
+          <option value="Cooker">Cooker</option>
+          <option value="Dishwasher">Dishwasher</option>
+          <option value="Tumble Dryer">Tumble Dryer</option>
+          <option value="Microwave">Microwave</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Item Description</label>
+        <input type="text" id="itemDescription" placeholder="e.g. Brand, model, condition">
+      </div>
+
+      <div class="form-group">
+        <label>Assigned To</label>
+        <input type="text" id="assignedTo" placeholder="Volunteer name">
+      </div>
+
+      <div class="form-group">
+        <label>Delivery Date</label>
+        <input type="date" id="deliveryDate">
+      </div>
+
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="orderNotes" placeholder="Any additional details..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-danger btn-sm" id="deleteBtn" style="display:none"
+                onclick="deleteOrder()">Delete</button>
+        <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn-primary" id="saveBtn">Save Order</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const API_URL_KEY = 'charity_orders_api_url';
+  let API_URL = localStorage.getItem(API_URL_KEY) || '';
+
+  function init() {
+    if (!API_URL) {
+      document.getElementById('setupBanner').style.display = 'block';
+      document.getElementById('orderList').innerHTML = '<div class="empty">Configure your API URL above to get started.</div>';
+    } else {
+      loadOrders();
+    }
+  }
+
+  function saveApiUrl(url) {
+    url = url.trim();
+    if (!url) return;
+    API_URL = url;
+    localStorage.setItem(API_URL_KEY, url);
+    document.getElementById('setupBanner').style.display = 'none';
+    loadOrders();
+  }
+
+  async function apiCall(action, params = {}, body = null) {
+    const url = new URL(API_URL);
+    url.searchParams.set('action', action);
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+
+    const opts = {};
+    if (body) {
+      opts.method = 'POST';
+      opts.body = JSON.stringify(body);
+      opts.headers = { 'Content-Type': 'text/plain' }; // Apps Script requires this for CORS
+    }
+
+    // Google Apps Script redirects, so we need no-cors or follow redirects
+    opts.redirect = 'follow';
+
+    const resp = await fetch(url.toString(), opts);
+    return resp.json();
+  }
+
+  async function loadOrders() {
+    if (!API_URL) return;
+    const list = document.getElementById('orderList');
+    list.innerHTML = '<div class="loading">Loading...</div>';
+
+    try {
+      const status = document.getElementById('statusFilter').value;
+      const data = await apiCall('list', { status });
+      renderOrders(data.orders || []);
+    } catch (err) {
+      list.innerHTML = '<div class="empty">Error loading orders. Check your API URL and try again.</div>';
+      console.error(err);
+    }
+  }
+
+  function renderOrders(orders) {
+    const list = document.getElementById('orderList');
+    if (orders.length === 0) {
+      list.innerHTML = '<div class="empty">No orders found. Create one to get started!</div>';
+      return;
+    }
+
+    // Sort: pending first, then scheduled, then delivered, then cancelled
+    const statusOrder = { Pending: 0, Scheduled: 1, Delivered: 2, Cancelled: 3 };
+    orders.sort((a, b) => (statusOrder[a.Status] ?? 9) - (statusOrder[b.Status] ?? 9));
+
+    list.innerHTML = orders.map(o => `
+      <div class="order-card" onclick='openEditOrder(${escapeForAttr(JSON.stringify(o))})'>
+        <div class="order-card-header">
+          <span class="order-id">${esc(o.ID)}</span>
+          <span class="badge badge-${(o.Status || 'pending').toLowerCase()}">${esc(o.Status)}</span>
+        </div>
+        <div class="order-recipient">${esc(o['Recipient Name'])}</div>
+        <div class="order-item">${esc(o['Item Type'])}${o['Item Description'] ? ' — ' + esc(o['Item Description']) : ''}</div>
+        <div class="order-meta">
+          ${o['Delivery Date'] ? 'Delivery: ' + esc(o['Delivery Date']) + ' · ' : ''}
+          ${o['Assigned To'] ? 'Assigned: ' + esc(o['Assigned To']) : 'Unassigned'}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function escapeForAttr(str) {
+    return str.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+  }
+
+  function openNewOrder() {
+    document.getElementById('modalTitle').textContent = 'New Order';
+    document.getElementById('orderForm').reset();
+    document.getElementById('orderId').value = '';
+    document.getElementById('deleteBtn').style.display = 'none';
+    document.getElementById('saveBtn').textContent = 'Create Order';
+    document.getElementById('modal').classList.add('active');
+  }
+
+  function openEditOrder(order) {
+    document.getElementById('modalTitle').textContent = 'Edit Order';
+    document.getElementById('orderId').value = order.ID;
+    document.getElementById('orderStatus').value = order.Status || 'Pending';
+    document.getElementById('recipientName').value = order['Recipient Name'] || '';
+    document.getElementById('recipientPhone').value = order['Recipient Phone'] || '';
+    document.getElementById('recipientAddress').value = order['Recipient Address'] || '';
+    document.getElementById('recipientPostcode').value = order['Recipient Postcode'] || '';
+    document.getElementById('itemType').value = order['Item Type'] || '';
+    document.getElementById('itemDescription').value = order['Item Description'] || '';
+    document.getElementById('assignedTo').value = order['Assigned To'] || '';
+    document.getElementById('deliveryDate').value = order['Delivery Date'] || '';
+    document.getElementById('orderNotes').value = order.Notes || '';
+    document.getElementById('deleteBtn').style.display = 'inline-block';
+    document.getElementById('saveBtn').textContent = 'Update Order';
+    document.getElementById('modal').classList.add('active');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('active');
+  }
+
+  async function saveOrder(e) {
+    e.preventDefault();
+    const id = document.getElementById('orderId').value;
+    const body = {
+      status: document.getElementById('orderStatus').value,
+      recipientName: document.getElementById('recipientName').value,
+      recipientPhone: document.getElementById('recipientPhone').value,
+      recipientAddress: document.getElementById('recipientAddress').value,
+      recipientPostcode: document.getElementById('recipientPostcode').value,
+      itemType: document.getElementById('itemType').value,
+      itemDescription: document.getElementById('itemDescription').value,
+      assignedTo: document.getElementById('assignedTo').value,
+      deliveryDate: document.getElementById('deliveryDate').value,
+      notes: document.getElementById('orderNotes').value,
+    };
+
+    document.getElementById('saveBtn').disabled = true;
+    document.getElementById('saveBtn').textContent = 'Saving...';
+
+    try {
+      if (id) {
+        await apiCall('update', { id }, body);
+      } else {
+        await apiCall('create', {}, body);
+      }
+      closeModal();
+      loadOrders();
+    } catch (err) {
+      alert('Error saving order: ' + err.message);
+    } finally {
+      document.getElementById('saveBtn').disabled = false;
+      document.getElementById('saveBtn').textContent = id ? 'Update Order' : 'Create Order';
+    }
+  }
+
+  async function deleteOrder() {
+    const id = document.getElementById('orderId').value;
+    if (!id || !confirm('Delete this order? This cannot be undone.')) return;
+
+    try {
+      await apiCall('delete', { id });
+      closeModal();
+      loadOrders();
+    } catch (err) {
+      alert('Error deleting order: ' + err.message);
+    }
+  }
+
+  // Close modal on overlay click
+  document.getElementById('modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Close modal on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  init();
+</script>
+
+</body>
+</html>
