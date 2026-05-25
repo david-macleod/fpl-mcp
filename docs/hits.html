@@ -32,8 +32,8 @@
     <div class="subtitle">Season 2025/26 · GW1–GW38 · Cumulative points deducted from extra transfers (-4 per hit)</div>
     <div id="chart"></div>
 
-    <h2 style="text-align:center;color:#e0e0e0;font-size:1.2em;margin-top:40px;margin-bottom:5px">Hits Per Gameweek</h2>
-    <div class="subtitle">Stacked bars show which managers took hits each week</div>
+    <h2 style="text-align:center;color:#e0e0e0;font-size:1.2em;margin-top:40px;margin-bottom:5px">Hits Per Gameweek vs H2H Performance</h2>
+    <div class="subtitle">Stacked bars = hits taken · Lines = cumulative H2H points vs league average (right axis)</div>
     <div id="chart2" style="width:100%;max-width:1200px;margin:0 auto"></div>
 
     <div class="callout">
@@ -91,25 +91,65 @@
             showlegend: false
         }, { responsive: true, displayModeBar: false });
 
-        // Per-GW stacked bar chart
+        // H2H results per GW
+        const h2hData = [
+            [3,3,3,3,3,3,3,3,0,3,3,0,3,0,3,0,3,3,3,0,0,0,3,3,0,0,0,0,0,1,3,3,3,3,0,0,0,3],
+            [0,3,3,3,0,0,3,3,0,3,0,3,0,3,0,3,3,0,3,3,0,3,3,3,0,0,3,3,3,3,3,3,3,0,0,3,0,3],
+            [3,0,3,0,3,3,0,0,3,0,3,0,3,3,3,3,3,0,0,0,0,3,0,3,3,3,0,0,0,1,3,3,0,3,3,0,0,0],
+            [0,3,0,3,0,0,0,0,3,3,0,0,3,0,0,0,3,3,0,3,3,3,0,3,0,0,0,0,3,3,0,0,3,1,3,3,3,0],
+            [3,0,0,0,3,3,3,3,3,3,0,3,0,3,3,0,0,0,0,0,3,0,0,0,3,0,3,3,0,0,0,0,0,1,0,0,3,0],
+            [3,0,0,3,3,0,0,0,3,0,3,3,0,0,3,0,0,3,3,3,0,0,3,0,0,3,3,0,0,0,0,3,0,0,3,3,0,3],
+            [0,3,3,0,0,0,0,3,0,0,3,0,0,3,0,3,0,3,3,0,3,0,0,0,3,3,3,3,3,3,0,0,3,3,3,0,3,0],
+            [0,0,0,0,0,3,3,0,0,0,0,3,3,0,0,3,0,0,0,3,3,3,3,0,3,3,0,3,3,0,0,0,0,0,0,3,3,3]
+        ];
+        managers.forEach((m, idx) => m.h2h = h2hData[idx]);
+
+        // Compute league average per GW
         const gws = Array.from({length: numGW}, (_, i) => 'GW' + (i + 1));
+        const gwTotals = gws.map((_, i) => managers.reduce((s, m) => s + m.h2h[i], 0));
+        const leagueAvgCum = [];
+        let avgSum = 0;
+        for (let i = 0; i < numGW; i++) {
+            avgSum += gwTotals[i] / managers.length;
+            leagueAvgCum.push(avgSum);
+        }
+
+        // Per-GW stacked bar chart + H2H overlay
         const gwTraces = managers.map(m => ({
             x: gws,
             y: m.hits,
             type: 'bar',
             name: m.name,
             marker: { color: m.color },
-            hovertemplate: '<b>%{fullData.name}</b><br>%{x}: -%{y} pts<extra></extra>'
+            hovertemplate: '<b>%{fullData.name}</b><br>%{x}: -%{y} pts hit<extra></extra>'
         }));
 
-        Plotly.newPlot('chart2', gwTraces, {
+        // H2H relative lines on secondary y-axis
+        const h2hTraces = managers.map(m => {
+            const cum = [];
+            let sum = 0;
+            for (let i = 0; i < numGW; i++) { sum += m.h2h[i]; cum.push(sum); }
+            const rel = cum.map((c, i) => +(c - leagueAvgCum[i]).toFixed(1));
+            return {
+                x: gws, y: rel,
+                type: 'scatter', mode: 'lines',
+                name: m.name,
+                line: { color: m.color, width: 2 },
+                yaxis: 'y2',
+                showlegend: false,
+                hovertemplate: '<b>%{fullData.name}</b><br>%{x}: %{y:+.1f} vs avg<extra></extra>'
+            };
+        });
+
+        Plotly.newPlot('chart2', [...gwTraces, ...h2hTraces], {
             paper_bgcolor: '#1a1a2e', plot_bgcolor: '#1a1a2e',
             font: { color: '#e0e0e0', family: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif' },
             barmode: 'stack',
             xaxis: { gridcolor: '#2a2a4e', dtick: 1, tickangle: -45 },
-            yaxis: { title: 'Points Hit', gridcolor: '#2a2a4e' },
+            yaxis: { title: 'Points Hit (bars)', gridcolor: '#2a2a4e' },
+            yaxis2: { title: 'H2H Pts vs Avg (lines)', overlaying: 'y', side: 'right', gridcolor: 'transparent', zeroline: true, zerolinecolor: '#555', zerolinewidth: 1 },
             legend: { orientation: 'h', y: -0.25, x: 0.5, xanchor: 'center', font: { size: 11 } },
-            margin: { t: 10, b: 120, l: 60, r: 20 },
+            margin: { t: 10, b: 120, l: 60, r: 60 },
             hovermode: 'x unified'
         }, { responsive: true, displayModeBar: false });
 
