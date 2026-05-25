@@ -57,9 +57,18 @@
             margin-right: 8px;
             vertical-align: middle;
         }
+        nav { text-align: center; margin-bottom: 20px; }
+        nav a { color: #00ff88; margin: 0 12px; text-decoration: none; font-size: 0.95em; }
+        nav a:hover { text-decoration: underline; }
+        nav a.active { border-bottom: 2px solid #00ff88; }
     </style>
 </head>
 <body>
+    <nav>
+        <a href="index.html" class="active">H2H Points</a>
+        <a href="bench.html">Bench Points</a>
+        <a href="hits.html">Transfer Hits</a>
+    </nav>
     <h1>H2H League — Cumulative H2H Points vs League Average</h1>
     <div class="subtitle">Season 2025/26 · GW1–GW38 (Final) · 3 pts for a win, 1 for a draw · Each line shows cumulative H2H points minus the league average</div>
     <div id="chart"></div>

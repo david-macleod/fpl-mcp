@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>H2H League - Cumulative Bench Points</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #e0e0e0; margin: 0; padding: 20px; }
+        h1 { text-align: center; color: #00ff88; font-size: 1.6em; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #888; font-size: 0.9em; margin-bottom: 20px; }
+        #chart { width: 100%; max-width: 1200px; margin: 0 auto; }
+        nav { text-align: center; margin-bottom: 20px; }
+        nav a { color: #00ff88; margin: 0 12px; text-decoration: none; font-size: 0.95em; }
+        nav a:hover { text-decoration: underline; }
+        nav a.active { border-bottom: 2px solid #00ff88; }
+        .standings { max-width: 900px; margin: 30px auto; border-collapse: collapse; width: 100%; }
+        .standings th, .standings td { padding: 8px 14px; text-align: left; border-bottom: 1px solid #333; }
+        .standings th { color: #00ff88; font-size: 0.85em; text-transform: uppercase; }
+        .standings tr:hover { background: #2a2a4e; }
+        .color-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; vertical-align: middle; }
+        .callout { max-width: 900px; margin: 20px auto; padding: 16px; background: #2a2a4e; border-left: 4px solid #ff6384; border-radius: 4px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">H2H Points</a>
+        <a href="bench.html" class="active">Bench Points</a>
+        <a href="hits.html">Transfer Hits</a>
+    </nav>
+    <h1>Points Left on the Bench</h1>
+    <div class="subtitle">Season 2025/26 · GW1–GW38 · Cumulative bench points per manager — higher = more wasted points</div>
+    <div id="chart"></div>
+
+    <div class="callout">
+        <strong>Asmat left 53 points on his bench in GW32 alone</strong> — more than some managers scored that week. Reed wasted 356 bench points across the season (9.4 per week). MacLeod was the most efficient with only 204.
+    </div>
+
+    <table class="standings" id="standings"></table>
+
+    <script>
+        const managers = [
+            { name: "Ribeiro (The Participation Me)", color: "#ff6384",
+              bench: [3,7,2,7,9,8,9,23,8,7,8,5,6,6,7,5,2,13,0,4,7,9,16,1,1,4,3,0,0,0,11,8,19,0,13,3,4,0] },
+            { name: "Clough (Clough's Crushers)", color: "#36a2eb",
+              bench: [23,13,4,5,5,14,4,9,7,10,5,5,5,23,10,7,2,3,0,2,4,9,5,2,9,4,15,5,16,4,12,6,0,0,21,15,11,0] },
+            { name: "MacLeod (Fellaini's 11½)", color: "#ffce56",
+              bench: [0,8,14,3,4,2,3,4,18,4,7,2,3,5,5,8,6,14,10,3,5,5,14,6,5,4,4,2,0,14,2,2,0,5,6,2,5,0] },
+            { name: "Reed (Nothing Else Matheus)", color: "#4bc0c0",
+              bench: [13,13,14,8,9,9,6,14,22,14,9,15,1,3,5,5,6,0,13,3,13,28,19,7,15,6,13,2,14,14,0,4,9,6,12,0,12,0] },
+            { name: "Claude-ai (Generational Talents)", color: "#00ff88",
+              bench: [2,6,3,3,9,12,4,18,3,5,3,7,5,4,3,7,2,19,10,9,27,8,13,15,28,6,5,2,6,19,10,6,10,12,24,8,12,7] },
+            { name: "Farrington (The Full English)", color: "#ff9f40",
+              bench: [12,15,15,14,3,10,7,5,4,5,0,15,10,7,11,3,4,20,11,26,11,22,17,3,2,5,14,12,21,2,0,5,12,1,7,0,17,2] },
+            { name: "Fernandes (Artekkers)", color: "#c792ea",
+              bench: [9,8,3,11,9,0,4,20,11,16,6,3,7,7,12,13,6,0,15,2,12,8,8,22,4,6,20,0,18,12,0,2,19,8,7,13,11,0] },
+            { name: "Asmat (Botman Begins)", color: "#f78c6c",
+              bench: [9,2,14,6,14,10,19,7,8,15,3,5,12,2,5,5,17,0,12,17,11,10,1,4,8,5,9,5,3,14,8,53,0,0,16,17,8,3] }
+        ];
+
+        const numGW = 38;
+        const gws = Array.from({length: numGW}, (_, i) => i + 1);
+
+        const traces = managers.map(m => {
+            const cumulative = [];
+            let sum = 0;
+            for (let i = 0; i < numGW; i++) {
+                sum += m.bench[i];
+                cumulative.push(sum);
+            }
+            return {
+                x: gws, y: cumulative,
+                mode: 'lines+markers', name: m.name,
+                line: { color: m.color, width: 2.5 }, marker: { size: 4 },
+                customdata: m.bench.map((b, i) => [cumulative[i], b]),
+                hovertemplate: '<b>%{fullData.name}</b><br>GW%{x}: %{customdata[1]} pts on bench<br>Cumulative: %{customdata[0]}<extra></extra>'
+            };
+        });
+
+        Plotly.newPlot('chart', traces, {
+            paper_bgcolor: '#1a1a2e', plot_bgcolor: '#1a1a2e',
+            font: { color: '#e0e0e0', family: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif' },
+            xaxis: { title: 'Gameweek', gridcolor: '#2a2a4e', dtick: 1, range: [0.5, 38.5] },
+            yaxis: { title: 'Cumulative Bench Points', gridcolor: '#2a2a4e' },
+            legend: { orientation: 'h', y: -0.15, x: 0.5, xanchor: 'center', font: { size: 11 } },
+            margin: { t: 20, b: 100, l: 60, r: 20 }, hovermode: 'x unified'
+        }, { responsive: true, displayModeBar: false });
+
+        // Standings table
+        const standingsData = managers.map(m => {
+            const total = m.bench.reduce((a, b) => a + b, 0);
+            const max = Math.max(...m.bench);
+            const maxGW = m.bench.indexOf(max) + 1;
+            const avg = (total / numGW).toFixed(1);
+            const zeros = m.bench.filter(x => x === 0).length;
+            return { ...m, total, max, maxGW, avg, zeros };
+        }).sort((a, b) => b.total - a.total);
+
+        let html = '<tr><th></th><th>Manager</th><th>Total Bench Pts</th><th>Avg/GW</th><th>Worst GW</th><th>Clean Benches (0 pts)</th></tr>';
+        for (const m of standingsData) {
+            html += `<tr>
+                <td><span class="color-dot" style="background:${m.color}"></span></td>
+                <td>${m.name}</td>
+                <td>${m.total}</td>
+                <td>${m.avg}</td>
+                <td>${m.max} pts (GW${m.maxGW})</td>
+                <td>${m.zeros}</td>
+            </tr>`;
+        }
+        document.getElementById('standings').innerHTML = html;
+    </script>
+</body>
+</html>
