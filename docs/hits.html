@@ -59,31 +59,32 @@
         ];
 
         const numGW = 38;
-        const gws = Array.from({length: numGW}, (_, i) => i + 1);
 
-        const traces = managers.map(m => {
-            const cumulative = [];
-            let sum = 0;
-            for (let i = 0; i < numGW; i++) {
-                sum += m.hits[i];
-                cumulative.push(sum);
-            }
-            return {
-                x: gws, y: cumulative,
-                mode: 'lines+markers', name: m.name,
-                line: { color: m.color, width: 2.5 }, marker: { size: 4 },
-                customdata: m.hits.map((h, i) => [cumulative[i], h]),
-                hovertemplate: '<b>%{fullData.name}</b><br>GW%{x}: -%{customdata[1]} hit<br>Cumulative: -%{customdata[0]}<extra></extra>'
-            };
-        });
+        const sorted = managers.map(m => {
+            const total = m.hits.reduce((a, b) => a + b, 0);
+            const hitWeeks = m.hits.filter(x => x > 0).length;
+            const maxHit = Math.max(...m.hits);
+            return { ...m, total, hitWeeks, maxHit };
+        }).sort((a, b) => b.total - a.total);
 
-        Plotly.newPlot('chart', traces, {
+        const trace = {
+            x: sorted.map(m => m.name),
+            y: sorted.map(m => m.total),
+            type: 'bar',
+            marker: { color: sorted.map(m => m.color) },
+            text: sorted.map(m => '-' + m.total),
+            textposition: 'outside',
+            textfont: { color: '#e0e0e0', size: 13 },
+            hovertemplate: '<b>%{x}</b><br>Total: -%{y} pts<extra></extra>'
+        };
+
+        Plotly.newPlot('chart', [trace], {
             paper_bgcolor: '#1a1a2e', plot_bgcolor: '#1a1a2e',
             font: { color: '#e0e0e0', family: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif' },
-            xaxis: { title: 'Gameweek', gridcolor: '#2a2a4e', dtick: 1, range: [0.5, 38.5] },
-            yaxis: { title: 'Cumulative Transfer Hits (pts lost)', gridcolor: '#2a2a4e' },
-            legend: { orientation: 'h', y: -0.15, x: 0.5, xanchor: 'center', font: { size: 11 } },
-            margin: { t: 20, b: 100, l: 60, r: 20 }, hovermode: 'x unified'
+            xaxis: { tickangle: -25, gridcolor: '#2a2a4e' },
+            yaxis: { title: 'Total Points Lost to Transfer Hits', gridcolor: '#2a2a4e' },
+            margin: { t: 20, b: 160, l: 60, r: 20 },
+            showlegend: false
         }, { responsive: true, displayModeBar: false });
 
         // Standings table
