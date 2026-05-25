@@ -32,6 +32,10 @@
     <div class="subtitle">Season 2025/26 · GW1–GW38 · Cumulative points deducted from extra transfers (-4 per hit)</div>
     <div id="chart"></div>
 
+    <h2 style="text-align:center;color:#e0e0e0;font-size:1.2em;margin-top:40px;margin-bottom:5px">Hits Per Gameweek</h2>
+    <div class="subtitle">Stacked bars show which managers took hits each week</div>
+    <div id="chart2" style="width:100%;max-width:1200px;margin:0 auto"></div>
+
     <div class="callout">
         <strong>Ribeiro burned 116 points on transfer hits</strong> — more than every other manager combined (64). He took hits in 22 of 38 gameweeks, including 8-point double hits in 7 separate weeks. Farrington took zero hits all season.
     </div>
@@ -85,6 +89,28 @@
             yaxis: { title: 'Total Points Lost to Transfer Hits', gridcolor: '#2a2a4e' },
             margin: { t: 20, b: 160, l: 60, r: 20 },
             showlegend: false
+        }, { responsive: true, displayModeBar: false });
+
+        // Per-GW stacked bar chart
+        const gws = Array.from({length: numGW}, (_, i) => 'GW' + (i + 1));
+        const gwTraces = managers.map(m => ({
+            x: gws,
+            y: m.hits,
+            type: 'bar',
+            name: m.name,
+            marker: { color: m.color },
+            hovertemplate: '<b>%{fullData.name}</b><br>%{x}: -%{y} pts<extra></extra>'
+        }));
+
+        Plotly.newPlot('chart2', gwTraces, {
+            paper_bgcolor: '#1a1a2e', plot_bgcolor: '#1a1a2e',
+            font: { color: '#e0e0e0', family: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif' },
+            barmode: 'stack',
+            xaxis: { gridcolor: '#2a2a4e', dtick: 1, tickangle: -45 },
+            yaxis: { title: 'Points Hit', gridcolor: '#2a2a4e' },
+            legend: { orientation: 'h', y: -0.25, x: 0.5, xanchor: 'center', font: { size: 11 } },
+            margin: { t: 10, b: 120, l: 60, r: 20 },
+            hovermode: 'x unified'
         }, { responsive: true, displayModeBar: false });
 
         // Standings table
