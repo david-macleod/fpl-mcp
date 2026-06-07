@@ -40,7 +40,10 @@ def simple_score(team: str, stages: set) -> dict:
             w += 1
         elif gf == ga:
             d += 1
-    return {"W": w, "D": d, "goals": goals, "pts": 3 * w + d + goals}
+    result_pts = 3 * w + d           # points from wins/draws
+    return {"W": w, "D": d, "goals": goals,
+            "result_pts": result_pts, "goal_pts": goals,
+            "pts": result_pts + goals}
 
 
 def table(rosters: dict[int, list[str]], stages: set, title: str) -> None:
@@ -52,11 +55,14 @@ def table(rosters: dict[int, list[str]], stages: set, title: str) -> None:
     for player, teams in rosters.items():
         rows = [(t, simple_score(t, stages)) for t in teams]
         total = sum(s["pts"] for _, s in rows)
+        res = sum(s["result_pts"] for _, s in rows)
+        gls = sum(s["goal_pts"] for _, s in rows)
         player_total[player] = total
-        print(f"\nPlayer {player}  —  {total} pts")
-        print(f"   {'team':<16}{'W':>2}{'D':>2}{'gls':>4}{'pts':>5}")
+        print(f"\nPlayer {player}  —  {total} pts   [result {res}, goals {gls}]")
+        print(f"   {'team':<16}{'split':>10}{'pts':>5}")
         for t, s in sorted(rows, key=lambda r: r[1]["pts"], reverse=True):
-            print(f"   {t:<16}{s['W']:>2}{s['D']:>2}{s['goals']:>4}{s['pts']:>5}")
+            split = f"[{s['result_pts']}, {s['goal_pts']}]"
+            print(f"   {t:<16}{split:>10}{s['pts']:>5}")
 
     print("\n   --- standings ---")
     for pos, (p, tot) in enumerate(
