@@ -412,16 +412,46 @@ Authenticated actions against a real FPL team: logging in, saving the starting
 XI, and making transfers. Replaces the removed fpl_session.py and
 credentials_manager.py.
 
-The read-only public API needs no auth; everything here does. Two ways to get
-a session, both returning a plain {name: value} cookie dict:
+The read-only public API needs no auth; everything here does. Three ways to
+get a session, all returning a plain {name: value} cookie dict:
 
+  get_session()                              -> cached session, re-login if stale
   login(email, password, headless=True)      -> drives a browser (Playwright)
   cookies_from_string(cookie_header)         -> cookies copied from a browser
 
-login() talks to users.premierleague.com. Where that host is unreachable (for
-example Claude Code cloud sessions, whose security proxy blocks it), use
-cookies_from_string() instead - the action endpoints all live on
-fantasy.premierleague.com, which is reachable.
+get_session() is the one to call from analysis scripts: it reuses the saved
+session, checks it still works, and logs in again only when it does not. That
+makes scheduled/headless runs hands-off, provided .credentials holds a working
+email and password.
+
+LOGIN FLOW (changed - myPL migration)
+-------------------------------------
+The old users.premierleague.com login was retired; the host does not resolve
+at all any more. Logging in now means the myPL OAuth flow:
+
+  fantasy.premierleague.com/my-team
+    -> click "Log in"
+    -> account.premierleague.com/as/authorize   (PingOne, PKCE)
+    -> form: #username, #password, #btnSignIn
+    -> redirect back to fantasy.premierleague.com with an auth code
+    -> the site exchanges the code for a session cookie
+
+login() drives exactly that. It clicks the site's own "Log in" button rather
+than building an authorize URL by hand, because the URL carries a PKCE
+challenge and state that the app generates. The page serves no captcha to a
+scripted browser, so headless works.
+
+Cookies are no longer filtered to a fixed list of names (the myPL migration
+changed them). login() keeps every premierleague.com cookie, and whether a
+session works is settled by calling the API - see FPLTeam.is_logged_in().
+
+CREDENTIAL FILES
+----------------
+  .credentials          {"username": ..., "password": ...}, written by you
+  .session.credentials  saved cookies, written by save_cookies()
+
+These are deliberately separate files: save_cookies() used to write over
+.credentials, destroying the stored email and password. Both are gitignored.
 
 SAFETY
 ------
@@ -447,6 +477,10 @@ Methods:
   - Current squad with per-player selling_price and purchase_price, plus
     chips and transfer state (bank, value, free transfer limit)
   - Raises a clear error on 403, which means the cookies have expired
+
+  is_logged_in() -> bool
+  - Asks for the squad and reports whether it worked. The only reliable test
+    of a session, now that cookie names are not stable
 
   get_current_gameweek() -> int
   - The next gameweek to be played (is_next), falling back to is_current
@@ -480,16 +514,23 @@ FUNCTIONS
   - Run this before set_lineup() to catch errors without a round trip
 
   save_cookies(cookies) / load_cookies()
-  - Persist to .credentials (gitignored, chmod 600)
+  - Persist to .session.credentials (gitignored, chmod 600)
+
+  load_credentials() -> (username, password)
+  - Reads .credentials, returning (None, None) if absent or unreadable
+
+  get_session(team_id=TEAM_ID, force_login=False) -> dict
+  - Cached cookies if they still work, otherwise a fresh headless login
 
 USAGE EXAMPLES
 --------------
 
-Save a session once:
+Establish a session:
 
-  python3 fpl_actions.py --cookie "pl_profile=...; sessionid=...; csrftoken=..."
-  python3 fpl_actions.py --email you@example.com          # Playwright login
-  python3 fpl_actions.py --email you@example.com --show-browser   # for captchas
+  python3 fpl_actions.py                  # reuse saved session, re-login if stale
+  python3 fpl_actions.py --login          # force a fresh login from .credentials
+  python3 fpl_actions.py --login --show-browser        # watch it happen
+  python3 fpl_actions.py --cookie "pl_profile=...; sessionid=..."
 
 Set a lineup:
 
@@ -508,7 +549,7 @@ Set a lineup:
   assert not errors, errors
 
   async def main():
-      async with FPLTeam(load_cookies()) as team:
+      async with FPLTeam(await get_session()) as team:
           await team.set_lineup(picks)                  # dry run, prints JSON
           await team.set_lineup(picks, confirm=True)    # actually saves
   asyncio.run(main())
@@ -516,7 +557,7 @@ Set a lineup:
 Make transfers:
 
   async def main():
-      async with FPLTeam(load_cookies()) as team:
+      async with FPLTeam(await get_session()) as team:
           moves = [(out_id, in_id)]
           transfers = await team.plan_transfers(moves, players_by_id)
           await team.make_transfers(transfers)                 # dry run
@@ -530,7 +571,7 @@ CHIPS
 
 NOTES
 -----
-- Cookies expire; a 403 from get_my_team() means refresh them
+- Cookies expire; get_session() notices and logs in again by itself
 - selling_price and purchase_price are in 0.1m units, as elsewhere in the API
 - Only one chip can be played per gameweek
 
@@ -539,3 +580,7 @@ VERSION HISTORY
 
 v1.0 - Login via Playwright or copied cookies, dry-run-by-default lineup and
        transfer writes, offline lineup validation
+v1.1 - Rewritten for the myPL login (users.premierleague.com was retired and
+       no longer resolves). Cookies stored separately from the email/password
+       so saving a session no longer overwrites them. Added get_session() and
+       is_logged_in() for hands-off headless runs.

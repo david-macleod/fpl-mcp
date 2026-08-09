@@ -33,16 +33,28 @@ import aiohttp
 from constants import API_URLS, TEAM_ID
 from utils import check_response, fetch
 
-LOGIN_URL = (
-    "https://users.premierleague.com/accounts/login/"
-    "?redirect_uri=https://fantasy.premierleague.com/&app=plfpl-web"
-)
+# The old users.premierleague.com login was retired - the host no longer even
+# resolves. Logging in now means the myPL OAuth flow on
+# account.premierleague.com, which the Fantasy site kicks off itself. Rather
+# than hand-building an authorize URL (it carries a PKCE challenge and state
+# the app generates), we click the site's own "Log in" button and follow it.
+FANTASY_URL = "https://fantasy.premierleague.com"
+LOGIN_START_URL = f"{FANTASY_URL}/my-team"
+AUTHORIZE_URL = "https://account.premierleague.com/as/authorize"
 
+# Email/password, written by hand or by an earlier setup script.
 CREDENTIALS_PATH = os.path.join(os.path.dirname(__file__), ".credentials")
 
-# Cookies that actually carry the session. `csrftoken` is also sent back as a
-# header on POSTs; FPL rejects the write otherwise.
-SESSION_COOKIES = ("pl_profile", "sessionid", "csrftoken")
+# Session cookies. Deliberately a *different* file from CREDENTIALS_PATH:
+# saving cookies over your stored email and password would lock you out of
+# the automatic login. Both are gitignored (".credentials", "*.credentials").
+SESSION_PATH = os.path.join(os.path.dirname(__file__), ".session.credentials")
+
+# Cookie domains worth keeping. The myPL migration changed the session cookie
+# names, so we no longer filter by name - keeping every premierleague.com
+# cookie is what makes this survive the next rename. Whether the session
+# actually works is settled by calling the API, not by looking for a name.
+COOKIE_DOMAINS = ("premierleague.com",)
 
 # Chip identifiers as the API expects them.
 CHIPS = {
@@ -71,17 +83,18 @@ FORMATION_LIMITS = {
 async def login(email, password, headless=True, timeout=60000):
     """Logs in with a real browser and returns the session cookies.
 
-    Requires Playwright (``pip install playwright``). The browser binary is
-    already present in most environments; if not, run
-    ``playwright install chromium``.
+    Drives the myPL OAuth flow: open the Fantasy site, click its "Log in"
+    button, fill the form on ``account.premierleague.com``, and let the
+    redirect back to Fantasy establish the session. Runs headless - the
+    login page serves no captcha to a scripted browser.
 
-    This talks to ``users.premierleague.com``, so it only works where that
-    host is reachable. If it is blocked, use :func:`cookies_from_string`.
+    Requires Playwright (``pip install playwright`` and
+    ``playwright install chromium``).
 
-    :param str email: Premier League account email.
-    :param str password: Premier League account password.
-    :param bool headless: Run without a visible window. Set False to solve a
-        Cloudflare or captcha challenge by hand.
+    :param str email: myPL account email.
+    :param str password: myPL account password.
+    :param bool headless: Run without a visible window. Set False to watch
+        the flow or to complete an unexpected challenge by hand.
     :param int timeout: Navigation timeout in milliseconds.
     :return: Cookie name/value pairs for the logged-in session.
     :rtype: dict
@@ -93,47 +106,85 @@ async def login(email, password, headless=True, timeout=60000):
         context = await browser.new_context()
         page = await context.new_page()
 
-        await page.goto(LOGIN_URL, timeout=timeout)
+        await page.goto(LOGIN_START_URL, timeout=timeout,
+                        wait_until="domcontentloaded")
+        await _dismiss_consent(page)
 
-        # The OneTrust consent banner sits over the form when present.
+        # The Fantasy header's "Log in" hands off to the myPL authorize URL,
+        # PKCE parameters and all.
         try:
-            await page.click("#onetrust-accept-btn-handler", timeout=5000)
+            await page.get_by_role(
+                "button", name="Log in", exact=True).first.click(timeout=20000)
+            await page.wait_for_url(f"{AUTHORIZE_URL}**", timeout=timeout)
+        except Exception:
+            raise Exception(
+                f"Could not reach the myPL login page from {LOGIN_START_URL}. "
+                f"Stuck at {page.url}. Retry with headless=False to watch it."
+            )
+
+        await _dismiss_consent(page)
+        await page.fill("#username", email)
+        await page.fill("#password", password)
+        await page.click("#btnSignIn")
+
+        # A successful login bounces back to fantasy.premierleague.com with
+        # an authorization code the site exchanges for a session.
+        try:
+            await page.wait_for_url(f"{FANTASY_URL}/**", timeout=timeout)
+        except Exception:
+            raise Exception(
+                f"Login was not accepted: {await _login_error(page)} "
+                f"(still on {page.url[:80]}). Check the email and password "
+                f"in {CREDENTIALS_PATH}, or retry with headless=False."
+            )
+
+        # Let the code-for-session exchange finish before taking cookies.
+        try:
+            await page.wait_for_load_state("networkidle", timeout=20000)
         except Exception:
             pass
 
-        await page.fill("input[name='login']", email)
-        await page.fill("input[name='password']", password)
-        await page.click("button[type='submit']")
-
-        # A successful login bounces to fantasy.premierleague.com.
-        try:
-            await page.wait_for_url(
-                "https://fantasy.premierleague.com/**", timeout=timeout)
-        except Exception:
-            raise Exception(
-                "Login did not redirect to fantasy.premierleague.com. The "
-                "credentials may be wrong, or a captcha is blocking the "
-                "form - retry with headless=False to see the page."
-            )
-
-        cookies = {c["name"]: c["value"] for c in await context.cookies()}
+        cookies = {
+            c["name"]: c["value"] for c in await context.cookies()
+            if any(c["domain"].endswith(d) for d in COOKIE_DOMAINS)
+        }
         await browser.close()
 
-    missing = [name for name in ("pl_profile", "sessionid")
-               if name not in cookies]
-    if missing:
-        raise Exception(
-            f"Logged in but the session cookies are missing: {missing}")
+    if not cookies:
+        raise Exception("Logged in but no premierleague.com cookies were set")
 
     return cookies
+
+
+async def _dismiss_consent(page):
+    """Clicks away the OneTrust banner, which overlays the login form."""
+    try:
+        await page.click("#onetrust-accept-btn-handler", timeout=5000)
+        await page.wait_for_timeout(500)
+    except Exception:
+        pass
+
+
+async def _login_error(page):
+    """Best-effort read of the error the login form is showing."""
+    try:
+        text = await page.evaluate("() => document.body.innerText")
+    except Exception:
+        return "no error message could be read"
+    for line in text.splitlines():
+        line = line.strip()
+        if "invalid" in line.lower() or "incorrect" in line.lower():
+            return line
+    return "no error message on the page"
 
 
 def cookies_from_string(cookie_header):
     """Parses cookies copied out of a browser into a dict.
 
-    Accepts the raw ``Cookie:`` header form, e.g.
-    ``"pl_profile=abc; sessionid=def; csrftoken=ghi"``. Anything that isn't a
-    session cookie is dropped.
+    Accepts the raw ``Cookie:`` header form, e.g. ``"pl_profile=abc;
+    sessionid=def"``. Every cookie is kept: which ones carry the myPL session
+    is not something to guess at, and a session that works is proved by
+    calling the API, not by spotting a name.
 
     :param str cookie_header: Semicolon-separated cookie string.
     :rtype: dict
@@ -144,22 +195,18 @@ def cookies_from_string(cookie_header):
         if not part or "=" not in part:
             continue
         name, _, value = part.partition("=")
-        name = name.strip()
-        if name in SESSION_COOKIES:
-            cookies[name] = value.strip()
+        cookies[name.strip()] = value.strip()
 
-    missing = [name for name in ("pl_profile", "sessionid")
-               if name not in cookies]
-    if missing:
+    if not cookies:
         raise Exception(
-            f"Missing required cookies: {missing}. Copy them from DevTools > "
-            f"Application > Cookies on fantasy.premierleague.com."
+            "No cookies found in that string. Copy the whole Cookie header "
+            "from DevTools > Network on fantasy.premierleague.com."
         )
 
     return cookies
 
 
-def save_cookies(cookies, path=CREDENTIALS_PATH):
+def save_cookies(cookies, path=SESSION_PATH):
     """Writes cookies to a gitignored file with owner-only permissions."""
     with open(path, "w") as f:
         json.dump(cookies, f)
@@ -167,7 +214,7 @@ def save_cookies(cookies, path=CREDENTIALS_PATH):
     return path
 
 
-def load_cookies(path=CREDENTIALS_PATH):
+def load_cookies(path=SESSION_PATH):
     """Reads cookies previously saved by :func:`save_cookies`."""
     if not os.path.exists(path):
         raise Exception(
@@ -176,6 +223,25 @@ def load_cookies(path=CREDENTIALS_PATH):
         )
     with open(path) as f:
         return json.load(f)
+
+
+def load_credentials(path=CREDENTIALS_PATH):
+    """Reads the stored email and password, if there are any.
+
+    Expects ``{"username": ..., "password": ...}``. Returns ``(None, None)``
+    when the file is absent or unreadable, so callers can fall back to
+    prompting.
+
+    :rtype: tuple
+    """
+    if not os.path.exists(path):
+        return None, None
+    try:
+        with open(path) as f:
+            stored = json.load(f)
+    except (ValueError, OSError):
+        return None, None
+    return stored.get("username"), stored.get("password")
 
 
 # --------------------------------------------------------------------------
@@ -334,6 +400,17 @@ class FPLTeam:
             await check_response(response)
             return await response.json()
 
+    async def is_logged_in(self):
+        """Checks the session by asking for the squad. Cheap and definitive.
+
+        :rtype: bool
+        """
+        try:
+            await self.get_my_team()
+        except Exception:
+            return False
+        return True
+
     async def get_current_gameweek(self):
         """Returns the id of the next gameweek to be played.
 
@@ -468,6 +545,41 @@ class FPLTeam:
         return transfers
 
 
+async def get_session(team_id=TEAM_ID, force_login=False):
+    """Returns cookies for a session that is known to work.
+
+    Reuses the saved session when it is still valid and logs in again when it
+    is not, so scheduled runs need no attention. Requires an email and
+    password in ``.credentials`` for the re-login to be automatic.
+
+    :param int team_id: Entry id used for the validity check.
+    :param bool force_login: Skip the cached session and log in fresh.
+    :rtype: dict
+    """
+    if not force_login:
+        try:
+            cookies = load_cookies()
+        except Exception:
+            cookies = None
+
+        if cookies:
+            async with FPLTeam(cookies, team_id) as team:
+                if await team.is_logged_in():
+                    return cookies
+
+    email, password = load_credentials()
+    if not email or not password:
+        raise Exception(
+            f"The saved session is gone or expired and {CREDENTIALS_PATH} has "
+            f"no email/password to log in with. Add them, or refresh the "
+            f"session by hand with cookies_from_string()."
+        )
+
+    cookies = await login(email, password)
+    save_cookies(cookies)
+    return cookies
+
+
 async def _main():
     """Saves a session so later runs can skip the browser."""
     import argparse
@@ -476,20 +588,32 @@ async def _main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cookie", help="Cookie header copied from a browser")
     parser.add_argument("--email", help="Log in with Playwright instead")
+    parser.add_argument("--login", action="store_true",
+                        help="Force a fresh login with the email and "
+                             "password in .credentials")
     parser.add_argument("--show-browser", action="store_true",
-                        help="Run the browser visibly to solve a captcha")
+                        help="Run the browser visibly to watch the flow")
     args = parser.parse_args()
 
-    if args.cookie:
+    if not any((args.cookie, args.email, args.login)):
+        # No arguments: reuse the saved session, logging in only if needed.
+        cookies = await get_session()
+    elif args.cookie:
         cookies = cookies_from_string(args.cookie)
-    elif args.email:
-        cookies = await login(args.email, getpass.getpass("FPL password: "),
-                              headless=not args.show_browser)
     else:
-        parser.error("pass --cookie or --email")
+        stored_email, stored_password = load_credentials()
+        email = args.email or stored_email
+        if not email:
+            parser.error("no email given and none stored in .credentials")
+        # Only reuse the stored password if it belongs to that email.
+        password = stored_password if email == stored_email else None
+        if not password:
+            password = getpass.getpass("FPL password: ")
+        cookies = await login(email, password,
+                              headless=not args.show_browser)
 
     save_cookies(cookies)
-    print(f"Session saved to {CREDENTIALS_PATH}")
+    print(f"Session saved to {SESSION_PATH}")
 
     async with FPLTeam(cookies) as team:
         state = await team.get_my_team()
