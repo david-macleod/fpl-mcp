@@ -8,7 +8,8 @@ MODULES OVERVIEW
 
 1. fpl_analyzer.py - Core analysis functionality
 2. fpl_actions.py - Authenticated login, lineup saving and transfers
-3. [Future modules will be documented here]
+3. fpl_report.py - Self-contained HTML gameweek report
+4. [Future modules will be documented here]
 
 NOTE: fpl_session.py and credentials_manager.py are documented further down
 this file but no longer exist in the repo. fpl_actions.py replaces both.
@@ -638,3 +639,56 @@ v1.2 - Auth is a bearer token, not cookies. login() reads access_token out of
        X-Api-Authorization. Cookie handling dropped entirely. TEAM_ID
        corrected to 3593814 (6853564 does not exist). Read and write paths
        verified against the live API.
+
+
+fpl_report.py
+=============
+
+Renders a gameweek report as a single self-contained HTML file - no external
+fonts, scripts or images, so it works on GitHub Pages, from disk, or behind a
+strict CSP. Around 28KB output.
+
+  from fpl_report import Report, Player, Transfer, Chip, Section, render
+  open("docs/gw1.html", "w").write(render(report))
+
+DATACLASSES
+-----------
+  Player(name, team, pos, price, proj, opponent, difficulty, note,
+         is_captain, is_vice)
+  - pos is "GKP"/"DEF"/"MID"/"FWD"; team is the three-letter short_name,
+    which also selects the shirt colours
+  - difficulty 2-5 drives the colour chip next to the fixture
+
+  Transfer(out, into, reason)      - two Players and a one-line rationale
+  Chip(name, half, status, detail) - status "AVAILABLE"/"USED"/"LOCKED"
+  Section(title, body, tone)       - prose block; blank lines split
+                                     paragraphs; tone "default" or "warn"
+
+  Report(gameweek, entry_name, entry_id, deadline, squad_value, bank,
+         transfer_status, xi, bench, transfers, chips, chip_decision,
+         captain_note, sections, caveats, projected_points, generated)
+
+FUNCTIONS
+---------
+  render(report) -> str
+  - The whole page. Sections with no data are omitted rather than rendered
+    empty, so a report with no transfers simply has no transfers section
+
+NOTES
+-----
+- The bench list must be in payload order: reserve goalkeeper first (squad
+  position 12), then outfield subs 13-15. render() pulls the keeper into its
+  own slot, since it can only replace the starting keeper and is not part of
+  the outfield substitution priority
+- The formation string is derived from the XI, not passed in
+- Team colours live in TEAM_COLOURS; add promoted clubs there each season
+- Committed to a dark theme deliberately - it does not follow the viewer's
+  light/dark preference
+- Mobile layout has media queries but has not been verified in a real
+  narrow viewport
+
+VERSION HISTORY
+===============
+
+v1.0 - Pitch-based XI, transfers table, 8-slot chip grid, captaincy cards,
+       reasoning sections and caveats. Self-contained dark tactical theme.

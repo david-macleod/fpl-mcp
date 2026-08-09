@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GW1 Report · Claude-ai&#x27;s Team</title>
+<meta name="description" content="Fantasy Premier League gameweek
+ 1 team report: transfers, chip decision, starting XI and
+ captaincy.">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#080D14; --ink-2:#0D141E; --panel:#111A26; --line:#1E2A3A;
+  --chalk:#E8EDF2; --mute:#7D8FA3; --lime:#C6F24E; --amber:#FFAE3B;
+  --red:#FF5C6E; --grass:#12301F; --grass-2:#164026;
+  --display:"Avenir Next Condensed","HelveticaNeue-CondensedBold",
+            "Arial Narrow",sans-serif;
+  --body:"Iowan Old Style","Charter","Palatino Linotype",Georgia,serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--ink);color:var(--chalk);font-family:var(--body);
+  line-height:1.6;font-size:16px;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%,#16283A 0%,transparent 60%),
+    repeating-linear-gradient(90deg,transparent 0 79px,#ffffff05 79px 80px);
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 96px}
+
+/* masthead */
+header.mast{padding:72px 0 40px;border-bottom:2px solid var(--line);
+  position:relative}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.32em;
+  text-transform:uppercase;color:var(--lime);margin:0 0 18px}
+.mast h1{font-family:var(--display);font-weight:700;letter-spacing:-.02em;
+  font-size:clamp(44px,9vw,104px);line-height:.88;margin:0;
+  text-transform:uppercase}
+.mast h1 .gw{color:var(--lime)}
+.mast .sub{font-size:17px;color:var(--mute);margin:18px 0 0;max-width:52ch}
+.mast .big-n{position:absolute;top:40px;right:-8px;font-family:var(--display);
+  font-size:clamp(120px,22vw,260px);line-height:.8;color:#ffffff07;
+  font-weight:700;pointer-events:none;user-select:none}
+
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:1px;background:var(--line);border:1px solid var(--line);margin:0 0 8px}
+.stats div{background:var(--ink-2);padding:20px 18px}
+.stats dt{font-family:var(--mono);font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--mute);margin:0 0 8px}
+.stats dd{margin:0;font-family:var(--display);font-size:32px;
+  letter-spacing:-.01em}
+.stats dd.lime{color:var(--lime)}
+
+section{margin:64px 0 0}
+h2{font-family:var(--display);text-transform:uppercase;letter-spacing:.01em;
+  font-size:clamp(26px,4vw,40px);margin:0 0 24px;display:flex;
+  align-items:baseline;gap:16px;border-bottom:1px solid var(--line);
+  padding-bottom:14px}
+h2 .n{font-family:var(--mono);font-size:12px;color:var(--lime);
+  letter-spacing:.2em}
+h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.06em;
+  font-size:18px;margin:0 0 14px;color:var(--chalk)}
+h3 .sub{font-family:var(--body);text-transform:none;letter-spacing:0;
+  color:var(--mute);font-size:13px;font-weight:400}
+
+/* pitch */
+.formation{font-family:var(--mono);color:var(--lime);font-size:13px;
+  letter-spacing:.2em;margin:0 0 18px}
+.pitch{position:relative;border:1px solid var(--line);border-radius:4px;
+  padding:32px 16px;display:flex;flex-direction:column;gap:26px;
+  overflow:hidden}
+.turf{position:absolute;inset:0;z-index:0;
+  background:
+    linear-gradient(180deg,var(--grass-2),var(--grass)),
+    repeating-linear-gradient(180deg,#ffffff08 0 56px,transparent 56px 112px);}
+.turf::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;
+  background:#ffffff22}
+.turf::after{content:"";position:absolute;left:50%;top:50%;width:132px;
+  height:132px;border:1px solid #ffffff22;border-radius:50%;
+  transform:translate(-50%,-50%)}
+.line{position:relative;z-index:1;display:flex;justify-content:center;
+  gap:clamp(6px,2.4vw,30px);flex-wrap:wrap}
+
+.shirt-card{margin:0;width:92px;text-align:center;
+  animation:rise .5s cubic-bezier(.2,.7,.3,1) backwards}
+.line-gkp .shirt-card{animation-delay:.05s}
+.line-def .shirt-card{animation-delay:.12s}
+.line-mid .shirt-card{animation-delay:.19s}
+.line-fwd .shirt-card{animation-delay:.26s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.shirt{position:relative;width:52px;margin:0 auto 8px;filter:
+  drop-shadow(0 6px 10px #0006)}
+.shirt svg{width:100%;display:block;fill:var(--kit);
+  stroke:var(--trim);stroke-width:2.5}
+.shirt-card.small{width:74px}
+.shirt-card.small .shirt{width:38px}
+.armband{position:absolute;right:-8px;top:-6px;width:24px;height:24px;
+  border-radius:50%;background:var(--amber);color:#1A1200;font-family:var(--mono);
+  font-size:12px;font-weight:700;display:grid;place-items:center;
+  border:2px solid var(--ink)}
+.armband.vice{background:var(--chalk);color:#10151C}
+figcaption b{display:block;font-family:var(--display);font-size:15px;
+  letter-spacing:.02em;line-height:1.15}
+figcaption .meta{display:block;font-family:var(--mono);font-size:10px;
+  color:#B9C6D4;margin-top:3px}
+figcaption .opp{display:block;font-family:var(--mono);font-size:10px;
+  color:#8FA0B2;margin-top:2px}
+figcaption .flag{display:block;font-size:11px;color:var(--amber);
+  font-style:normal;margin-top:3px}
+.d{display:inline-block;width:7px;height:7px;border-radius:2px;
+  margin-right:5px;vertical-align:middle}
+.d2{background:#3FCF6A}.d3{background:#C9C13F}.d4{background:#E08A3C}
+.d5{background:var(--red)}
+
+/* bench */
+.bench{margin-top:34px}
+.bench-list{list-style:none;margin:0;padding:0;display:flex;
+  gap:clamp(8px,2vw,24px);flex-wrap:wrap}
+.bench-list li{display:flex;align-items:flex-start;gap:8px;
+  background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:14px 16px 12px}
+.ord{font-family:var(--mono);font-size:11px;color:var(--lime);
+  border:1px solid var(--line);border-radius:3px;padding:2px 6px}
+.ord.gk{color:var(--amber);border-color:#3A2E18}
+.bench-list .gk-slot{border-color:#3A2E18;margin-right:6px}
+
+/* transfers */
+table{width:100%;border-collapse:collapse;font-size:15px}
+.transfers th{font-family:var(--mono);font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--mute);text-align:left;
+  padding:0 14px 12px;font-weight:400}
+.transfers td{padding:14px;border-top:1px solid var(--line);
+  vertical-align:middle}
+.transfers b{font-family:var(--display);font-size:17px;letter-spacing:.02em;
+  display:block}
+.transfers span{font-family:var(--mono);font-size:10px;color:var(--mute)}
+.transfers .out b{color:var(--red)}
+.transfers .in b{color:var(--lime)}
+.transfers .arrow{color:var(--mute);font-size:20px;width:34px;
+  text-align:center}
+.transfers .why{color:var(--mute);font-size:14px;max-width:34ch}
+
+/* chips */
+.decision{font-size:18px;border-left:3px solid var(--lime);padding-left:18px;
+  margin:0 0 28px;max-width:70ch}
+.chip-halves{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:28px}
+.chip-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:14px 16px}
+.chip b{font-family:var(--display);font-size:15px;letter-spacing:.04em;
+  text-transform:uppercase;display:block}
+.chip .status{font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+  display:block;margin-top:6px}
+.chip.available{border-left:3px solid var(--lime)}
+.chip.available .status{color:var(--lime)}
+.chip.used{opacity:.5;border-left:3px solid var(--mute)}
+.chip.used .status{color:var(--mute)}
+.chip.locked{border-left:3px solid var(--amber)}
+.chip.locked .status{color:var(--amber)}
+.chip em{display:block;font-style:normal;font-size:11px;color:var(--mute);
+  margin-top:6px;line-height:1.4}
+
+/* captain + notes */
+.captains{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:20px;margin-bottom:26px}
+.cap-card{background:var(--panel);border:1px solid var(--line);
+  border-top:3px solid var(--amber);border-radius:4px;padding:22px 24px}
+.cap-card.vice{border-top-color:var(--chalk)}
+.cap-card .role{font-family:var(--mono);font-size:10px;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--amber)}
+.cap-card.vice .role{color:var(--mute)}
+.cap-card .who{font-family:var(--display);font-size:34px;line-height:1.05;
+  margin:10px 0 4px;text-transform:uppercase}
+.cap-card .fx{font-family:var(--mono);font-size:11px;color:var(--mute)}
+
+.note{background:var(--ink-2);border:1px solid var(--line);border-radius:4px;
+  padding:22px 26px;margin:0 0 16px}
+.note p{margin:0 0 12px;color:#C3CEDA}.note p:last-child{margin:0}
+.note.warn{border-left:3px solid var(--amber)}
+
+.caveats{margin:0;padding:0 0 0 22px;color:#C3CEDA;max-width:76ch}
+.caveats li{margin:0 0 12px}
+
+footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:11px;color:var(--mute);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (max-width:640px){
+  .wrap{padding:0 16px 64px}
+  .shirt-card{width:72px}.shirt{width:42px}
+  .transfers .why{display:none}
+  .chip-grid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head><body>
+<div class="wrap">
+
+<header class="mast">
+  <div class="big-n" aria-hidden="true">01</div>
+  <p class="kicker">Gameweek 1 · Team Report</p>
+  <h1>Claude-ai&#x27;s Team<br><span class="gw">GW1</span></h1>
+  <p class="sub">Deadline Fri 21 Aug, 18:30 UK. Entry 3593814.
+     Decisions and the reasoning behind them.</p>
+</header>
+
+
+      <dl class="stats">
+        <div><dt>Squad value</dt><dd>£100.0m</dd></div>
+        <div><dt>In the bank</dt><dd>£0.0m</dd></div>
+        <div><dt>Transfers</dt><dd class="lime">Unlimited</dd></div>
+        <div><dt>Projected XI</dt><dd>66<span
+          style="font-size:15px;color:var(--mute)"> pts</span></dd></div>
+      </dl>
+
+<section id="xi">
+  <h2><span class="n">01</span> Starting XI</h2>
+  <p class="formation">FORMATION 4-4-2</p>
+  <div class="pitch"><div class="turf"></div><div class="line line-gkp">
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#EF0107;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Raya</b>
+          <span class="meta">ARS · £6.0m</span>
+          <span class="opp"><i class="d d2"></i>COV (H)</span>
+          
+        </figcaption>
+      </figure></div><div class="line line-def">
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#EF0107;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          <span class="armband vice" title="Vice-captain">V</span>
+        </div>
+        <figcaption>
+          <b>Gabriel</b>
+          <span class="meta">ARS · £8.0m</span>
+          <span class="opp"><i class="d d2"></i>COV (H)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#6CABDD;--trim:#1C2C5B">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Guéhi</b>
+          <span class="meta">MCI · £6.0m</span>
+          <span class="opp"><i class="d d3"></i>BOU (H)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#6CABDD;--trim:#1C2C5B">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>O&#x27;Reilly</b>
+          <span class="meta">MCI · £6.5m</span>
+          <span class="opp"><i class="d d3"></i>BOU (H)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#DD0000;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>N.Williams</b>
+          <span class="meta">NFO · £5.0m</span>
+          <span class="opp"><i class="d d2"></i>LEE (H)</span>
+          
+        </figcaption>
+      </figure></div><div class="line line-mid">
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#DD0000;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Gibbs-White</b>
+          <span class="meta">NFO · £8.0m</span>
+          <span class="opp"><i class="d d2"></i>LEE (H)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#EF0107;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Rice</b>
+          <span class="meta">ARS · £7.5m</span>
+          <span class="opp"><i class="d d2"></i>COV (H)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#1D428A;--trim:#FFCD00">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Wilson</b>
+          <span class="meta">LEE · £6.5m</span>
+          <span class="opp"><i class="d d3"></i>NFO (A)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#EB172B;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>E.Le Fée</b>
+          <span class="meta">SUN · £6.0m</span>
+          <span class="opp"><i class="d d2"></i>IPS (A)</span>
+          
+        </figcaption>
+      </figure></div><div class="line line-fwd">
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#6CABDD;--trim:#1C2C5B">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          <span class="armband" title="Captain">C</span>
+        </div>
+        <figcaption>
+          <b>Haaland</b>
+          <span class="meta">MCI · £15.5m</span>
+          <span class="opp"><i class="d d3"></i>BOU (H)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#034694;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>João Pedro</b>
+          <span class="meta">CHE · £7.5m</span>
+          <span class="opp"><i class="d d3"></i>FUL (A)</span>
+          
+        </figcaption>
+      </figure></div></div>
+  
+    <section class="bench">
+      <h3>Bench <span class="sub">reserve keeper, then outfield
+        substitution order</span></h3>
+      <ol class="bench-list"><li class="gk-slot"><span class="ord gk">GK</span>
+      <figure class="shirt-card small">
+        <div class="shirt" style="--kit:#3A64A3;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Palmer</b>
+          <span class="meta">IPS · £4.0m</span>
+          <span class="opp"><i class="d d2"></i>SUN (H)</span>
+          <em class="flag">no PL record</em>
+        </figcaption>
+      </figure></li><li><span class="ord">1</span>
+      <figure class="shirt-card small">
+        <div class="shirt" style="--kit:#EB172B;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Hume</b>
+          <span class="meta">SUN · £4.5m</span>
+          <span class="opp"><i class="d d2"></i>IPS (A)</span>
+          
+        </figcaption>
+      </figure></li><li><span class="ord">2</span>
+      <figure class="shirt-card small">
+        <div class="shirt" style="--kit:#DA291C;--trim:#FBE122">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Fletcher</b>
+          <span class="meta">MUN · £4.5m</span>
+          <span class="opp"><i class="d d2"></i>HUL (A)</span>
+          
+        </figcaption>
+      </figure></li><li><span class="ord">3</span>
+      <figure class="shirt-card small">
+        <div class="shirt" style="--kit:#E30613;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Furo</b>
+          <span class="meta">BRE · £4.5m</span>
+          <span class="opp"><i class="d d3"></i>TOT (H)</span>
+          
+        </figcaption>
+      </figure></li></ol>
+    </section>
+</section>
+
+
+    <section id="transfers">
+      <h2><span class="n">02</span> Transfers</h2>
+      <table class="transfers">
+        <thead><tr><th>Out</th><th></th><th>In</th><th>Rationale</th></tr>
+        </thead>
+        <tbody>
+      <tr>
+        <td class="out"><b>A.Becker</b><span>LIV ·
+            £5.5m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Raya</b><span>ARS ·
+            £6.0m</span></td>
+        <td class="why">Arsenal host promoted Coventry; Raya started all 37 last season.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Forster</b><span>BOU ·
+            £4.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Palmer</b><span>IPS ·
+            £4.0m</span></td>
+        <td class="why">Pure bench fodder, freeing £0.0m but unlocking budget elsewhere.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Tarkowski</b><span>EVE ·
+            £6.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Gabriel</b><span>ARS ·
+            £8.0m</span></td>
+        <td class="why">209 pts from 30 starts last season - forward-level output at £8.0m.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Senesi</b><span>TOT ·
+            £6.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Guéhi</b><span>MCI ·
+            £6.0m</span></td>
+        <td class="why">Moves into a City side facing Bournemouth at home.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Lacroix</b><span>CHE ·
+            £6.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>N.Williams</b><span>NFO ·
+            £5.0m</span></td>
+        <td class="why">Forest host Leeds; saves £1.0m for the Haaland budget.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Khusanov</b><span>MCI ·
+            £5.5m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Hume</b><span>SUN ·
+            £4.5m</span></td>
+        <td class="why">Cheapest bench defender who is a genuine starter.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Wirtz</b><span>LIV ·
+            £7.5m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Gibbs-White</b><span>NFO ·
+            £8.0m</span></td>
+        <td class="why">15 goals last season and a home tie with Leeds.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Doku</b><span>MCI ·
+            £7.5m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Wilson</b><span>LEE ·
+            £6.5m</span></td>
+        <td class="why">Frees £1.0m; Doku&#x27;s rotation risk is the highest in the squad.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Rogers</b><span>CHE ·
+            £7.5m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>E.Le Fée</b><span>SUN ·
+            £6.0m</span></td>
+        <td class="why">Sunderland travel to promoted Ipswich.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Gakpo</b><span>LIV ·
+            £7.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Fletcher</b><span>MUN ·
+            £4.5m</span></td>
+        <td class="why">Bench fodder, releasing £2.5m into the front line.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Thiago</b><span>BRE ·
+            £8.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Haaland</b><span>MCI ·
+            £15.5m</span></td>
+        <td class="why">27 goals last season; the captaincy ceiling the squad was missing.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Watkins</b><span>AVL ·
+            £8.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Furo</b><span>BRE ·
+            £4.5m</span></td>
+        <td class="why">Funds Haaland. Fourth forward slot is a non-playing bench spot.</td>
+      </tr></tbody>
+      </table>
+    </section>
+
+    <section id="chips">
+      <h2><span class="n">03</span> Chips</h2>
+      <p class="decision">No chip in GW1. Wildcard and Free Hit are locked until GW2, and neither of the two that are playable earns its keep this week.</p>
+      <div class="chip-halves"><div class="chip-half"><h3>GW1-19</h3><div class="chip-grid">
+          <div class="chip locked">
+            <b>Wildcard</b>
+            <span class="status">LOCKED</span>
+            <em>Not playable until GW2</em>
+          </div>
+          <div class="chip locked">
+            <b>Free Hit</b>
+            <span class="status">LOCKED</span>
+            <em>Not playable until GW2</em>
+          </div>
+          <div class="chip available">
+            <b>Bench Boost</b>
+            <span class="status">AVAILABLE</span>
+            <em>Held</em>
+          </div>
+          <div class="chip available">
+            <b>Triple Captain</b>
+            <span class="status">AVAILABLE</span>
+            <em>Held</em>
+          </div></div></div><div class="chip-half"><h3>GW20-38</h3><div class="chip-grid">
+          <div class="chip available">
+            <b>Wildcard</b>
+            <span class="status">AVAILABLE</span>
+            
+          </div>
+          <div class="chip available">
+            <b>Free Hit</b>
+            <span class="status">AVAILABLE</span>
+            
+          </div>
+          <div class="chip available">
+            <b>Bench Boost</b>
+            <span class="status">AVAILABLE</span>
+            
+          </div>
+          <div class="chip available">
+            <b>Triple Captain</b>
+            <span class="status">AVAILABLE</span>
+            
+          </div></div></div></div>
+    </section>
+
+        <section id="captain">
+          <h2><span class="n">04</span> Captaincy</h2>
+          <div class="captains">
+              <div class="cap-card">
+                <div class="role">Captain</div>
+                <div class="who">Haaland</div>
+                <div class="fx">MCI · BOU (H) ·
+                  proj 7.5 pts</div>
+              </div>
+              <div class="cap-card vice">
+                <div class="role">Vice-captain</div>
+                <div class="who">Gabriel</div>
+                <div class="fx">ARS · COV (H) ·
+                  proj 8.7 pts</div>
+              </div></div>
+          <div class="note"><p>The model actually ranks Gabriel higher on mean points (8.7 to 7.5) and would captain him. That is overridden here: captaincy should be chosen on ceiling, not mean. Gabriel&#x27;s realistic maximum is about 15 points, Haaland&#x27;s is north of 20, and 27 goals last season give him a far more right-skewed distribution.</p><p>The 1.2-point gap between them is comfortably inside the model&#x27;s error, so nothing is being given up by taking the higher ceiling.</p></div>
+        </section>
+
+<section id="reasoning"><h2><span class="n">06</span> Decision process</h2><div class="note default"><h3>Why a 12-player rebuild costs nothing</h3><p>The API reports transfer status `unlimited` with a null limit: before the first deadline every transfer is free. The default squad carried no premium forward and spent £22.5m on Wirtz, Doku and Rogers, all three of whom changed clubs over the summer and therefore carry last season&#x27;s numbers from a different team.</p><p>Rebuilding to the £100.0m limit exactly leaves £0.0m in the bank. Arsenal and Man City are both at the three-player cap, which is the binding constraint on this squad.</p></div><div class="note warn"><h3>How the projections were built</h3><p>With no games played there is no form data, so ep_next is not a projection worth trusting. Each player is scored as last season&#x27;s points-per-start, multiplied by how reliably they started, by a fixture-difficulty factor, and by a home/away adjustment. Injury flags scale the result by the published chance of playing.</p><p>Across eight very different candidate squads the projected totals spanned only 71.7 to 74.2 points. That gap is inside the model&#x27;s error, so this squad is a good answer rather than a provably optimal one.</p></div></section>
+
+
+    <section id="caveats">
+      <h2><span class="n">05</span> What this model cannot see</h2>
+      <ul class="caveats"><li>Club-changers carry stale rates. Guéhi&#x27;s 179 points were earned at Crystal Palace and Semenyo&#x27;s 202 at Bournemouth; the model assumes that output transfers to Manchester City, which is exactly the assumption that most often breaks.</li><li>Players at promoted clubs have no Premier League record at all. Palmer (IPS) is a price-implied guess used purely as a non-playing reserve keeper - read nothing into the selection.</li><li>No expected-goals modelling, no minutes projection, and no evidence from pre-season friendlies feeds these numbers.</li><li>The deadline is still 12 days away. Team news, pre-season injuries and late transfers will all move these picks before the final call.</li></ul>
+    </section>
+
+<footer>
+  <span>Generated 09 Aug 2026, first pass</span>
+  <span>Fantasy Premier League · entry 3593814</span>
+</footer>
+</div>
+</body></html>
