@@ -413,16 +413,34 @@ XI, and making transfers. Replaces the removed fpl_session.py and
 credentials_manager.py.
 
 The read-only public API needs no auth; everything here does. Three ways to
-get a session, all returning a plain {name: value} cookie dict:
+get a session, all returning a session dict:
 
   get_session()                              -> cached session, re-login if stale
   login(email, password, headless=True)      -> drives a browser (Playwright)
-  cookies_from_string(cookie_header)         -> cookies copied from a browser
+  session_from_token(access_token)           -> a token copied from a browser
 
 get_session() is the one to call from analysis scripts: it reuses the saved
 session, checks it still works, and logs in again only when it does not. That
 makes scheduled/headless runs hands-off, provided .credentials holds a working
 email and password.
+
+AUTH IS A BEARER TOKEN, NOT COOKIES  (verified against the live API)
+--------------------------------------------------------------------
+  X-Api-Authorization: Bearer <access_token>
+
+Measured, not assumed:
+  - token, no cookies at all          -> 200
+  - every cookie the site sets, no token -> 403 "credentials were not provided"
+  - id_token instead of access_token  -> 401 "Audience doesn't match"
+
+So cookies are not collected or sent at all. Only two headers matter on a
+write: the bearer token and Content-Type: application/json. Specifically:
+  - Referer is NOT checked - a deliberately wrong one still returns 200
+  - X-CSRFToken is ignored - a bogus value still returns 200. There is no
+    cookie session for CSRF to protect, so no token is involved
+  - omitting Content-Type gives 415, not 403
+We still send Referer and X-Requested-With to look like the site's own
+client, but nothing depends on them.
 
 LOGIN FLOW (changed - myPL migration)
 -------------------------------------
@@ -434,21 +452,24 @@ at all any more. Logging in now means the myPL OAuth flow:
     -> account.premierleague.com/as/authorize   (PingOne, PKCE)
     -> form: #username, #password, #btnSignIn
     -> redirect back to fantasy.premierleague.com with an auth code
-    -> the site exchanges the code for a session cookie
+    -> the site exchanges it for tokens, kept in localStorage under
+       "oidc.user:https://account.premierleague.com/as:<client id>"
 
-login() drives exactly that. It clicks the site's own "Log in" button rather
-than building an authorize URL by hand, because the URL carries a PKCE
-challenge and state that the app generates. The page serves no captcha to a
-scripted browser, so headless works.
+login() drives exactly that and reads access_token out of that entry. It
+clicks the site's own "Log in" button rather than building an authorize URL
+by hand, because the URL carries a PKCE challenge and state that the app
+generates. The page serves no captcha to a scripted browser, so headless
+works.
 
-Cookies are no longer filtered to a fixed list of names (the myPL migration
-changed them). login() keeps every premierleague.com cookie, and whether a
-session works is settled by calling the API - see FPLTeam.is_logged_in().
+Tokens last about an hour (expires_at in the session dict). get_session()
+notices and logs in again, which takes ~20 seconds. The refresh_token is
+saved but not used: POSTing it to as/token.oauth2 returns 403 "Missing
+Authentication Token", so a fresh login is the working path.
 
 CREDENTIAL FILES
 ----------------
   .credentials          {"username": ..., "password": ...}, written by you
-  .session.credentials  saved cookies, written by save_cookies()
+  .session.credentials  saved token, written by save_session()
 
 These are deliberately separate files: save_cookies() used to write over
 .credentials, destroying the stored email and password. Both are gitignored.
@@ -467,16 +488,21 @@ FPLTeam
 Async context manager wrapping an authenticated aiohttp session.
 
 Constructor:
-  FPLTeam(cookies, team_id=TEAM_ID)
-  - cookies: dict from login() or cookies_from_string()
-  - team_id: FPL entry id, defaults to constants.TEAM_ID
+  FPLTeam(session, team_id=TEAM_ID)
+  - session: dict from get_session(), login() or session_from_token().
+    A bare token string is accepted too
+  - team_id: FPL entry id, defaults to constants.TEAM_ID (3593814)
 
 Methods:
 
   get_my_team() -> dict
-  - Current squad with per-player selling_price and purchase_price, plus
-    chips and transfer state (bank, value, free transfer limit)
-  - Raises a clear error on 403, which means the cookies have expired
+  - Keys: picks, chips, transfers, picks_last_updated
+  - Each pick carries element, element_type, position, multiplier,
+    is_captain, is_vice_captain, selling_price, purchase_price
+  - transfers: {cost, status, limit, made, bank, value}. Pre-season, status
+    is "unlimited" and limit is null
+  - Raises a clear error on 401/403 (token missing or expired) and on 404
+    (entry does not exist, or is not managed by this account)
 
   is_logged_in() -> bool
   - Asks for the squad and reports whether it worked. The only reliable test
@@ -513,14 +539,19 @@ FUNCTIONS
     XI, reserve keeper at position 12, and captain/vice validity
   - Run this before set_lineup() to catch errors without a round trip
 
-  save_cookies(cookies) / load_cookies()
+  save_session(session) / load_session()
   - Persist to .session.credentials (gitignored, chmod 600)
+  - A session saved by an older version (cookies) is ignored, not fatal
 
   load_credentials() -> (username, password)
   - Reads .credentials, returning (None, None) if absent or unreadable
 
   get_session(team_id=TEAM_ID, force_login=False) -> dict
-  - Cached cookies if they still work, otherwise a fresh headless login
+  - Cached token if it still works, otherwise a fresh headless login
+
+  session_from_token(access_token) -> dict
+  - For when a browser cannot be launched. Find the token in DevTools >
+    Application > Local Storage under the oidc.user:... key
 
 USAGE EXAMPLES
 --------------
@@ -530,7 +561,7 @@ Establish a session:
   python3 fpl_actions.py                  # reuse saved session, re-login if stale
   python3 fpl_actions.py --login          # force a fresh login from .credentials
   python3 fpl_actions.py --login --show-browser        # watch it happen
-  python3 fpl_actions.py --cookie "pl_profile=...; sessionid=..."
+  python3 fpl_actions.py --token "eyJhbGciOi..."       # token from a browser
 
 Set a lineup:
 
@@ -571,9 +602,27 @@ CHIPS
 
 NOTES
 -----
-- Cookies expire; get_session() notices and logs in again by itself
+- Tokens expire after ~1 hour; get_session() notices and logs in again
 - selling_price and purchase_price are in 0.1m units, as elsewhere in the API
 - Only one chip can be played per gameweek
+- /api/transfers/ does NOT need a "freehit" key alongside "chip". Sending
+  one is accepted and ignored; omitting it returns 200
+
+WHAT HAS BEEN VERIFIED AGAINST THE LIVE API
+-------------------------------------------
+Verified end to end on entry 3593814:
+  - headless login through the myPL OAuth flow
+  - get_my_team() read path, including selling prices, bank and chips
+  - set_lineup() re-saving an unchanged lineup (accepted, team untouched)
+  - set_lineup() making a real change (vice-captaincy moved, read back to
+    confirm it landed, then reverted exactly)
+  - /api/transfers/ accepting the payload shape, with an empty transfer list
+
+NOT yet verified:
+  - a transfer with actual players in it. The payload shape, auth and
+    endpoint are proven, but element_in/element_out validation and the
+    selling-price check have not been exercised
+  - any chip being played. Chip routing is unit-tested offline only
 
 VERSION HISTORY
 ===============
@@ -584,3 +633,8 @@ v1.1 - Rewritten for the myPL login (users.premierleague.com was retired and
        no longer resolves). Cookies stored separately from the email/password
        so saving a session no longer overwrites them. Added get_session() and
        is_logged_in() for hands-off headless runs.
+v1.2 - Auth is a bearer token, not cookies. login() reads access_token out of
+       the site's OIDC localStorage entry and FPLTeam sends it as
+       X-Api-Authorization. Cookie handling dropped entirely. TEAM_ID
+       corrected to 3593814 (6853564 does not exist). Read and write paths
+       verified against the live API.

@@ -1,6 +1,6 @@
 API_BASE_URL = "https://fantasy.premierleague.com/api/"
 
-TEAM_ID = 6853564
+TEAM_ID = 3593814
 
 API_URLS = {
     "dynamic": "{}bootstrap-dynamic/".format(API_BASE_URL),
