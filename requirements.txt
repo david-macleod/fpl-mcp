@@ -1,3 +1,8 @@
 aiohttp>=3.12.0
 pandas>=2.0.0
 mcp>=1.0.0
+certifi
+
+# Optional: only needed for fpl_actions.login() (browser-based login).
+# Cookie-based auth via cookies_from_string() works without it.
+# playwright>=1.40.0

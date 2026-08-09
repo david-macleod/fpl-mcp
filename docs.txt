@@ -7,9 +7,12 @@ MODULES OVERVIEW
 ================
 
 1. fpl_analyzer.py - Core analysis functionality
-2. fpl_session.py - Authenticated FPL session management and transfers
-3. credentials_manager.py - Secure credential storage and management
-4. [Future modules will be documented here]
+2. fpl_actions.py - Authenticated login, lineup saving and transfers
+3. [Future modules will be documented here]
+
+NOTE: fpl_session.py and credentials_manager.py are documented further down
+this file but no longer exist in the repo. fpl_actions.py replaces both.
+Those sections are kept only as a record of the previous interface.
 
 fpl_analyzer.py
 ===============
@@ -196,7 +199,7 @@ This ensures all analysis uses the most current FPL data including:
 VERSION HISTORY
 ===============
 
-fpl_session.py
+fpl_session.py  [REMOVED - superseded by fpl_actions.py]
 ===============
 
 Authenticated FPL session management for making actual transfers and team changes.
@@ -401,3 +404,138 @@ v1.2 - Added secure credential management
 - Interactive setup and fallback
 - Integration with session management
 - Automated transfer workflows
+
+fpl_actions.py
+==============
+
+Authenticated actions against a real FPL team: logging in, saving the starting
+XI, and making transfers. Replaces the removed fpl_session.py and
+credentials_manager.py.
+
+The read-only public API needs no auth; everything here does. Two ways to get
+a session, both returning a plain {name: value} cookie dict:
+
+  login(email, password, headless=True)      -> drives a browser (Playwright)
+  cookies_from_string(cookie_header)         -> cookies copied from a browser
+
+login() talks to users.premierleague.com. Where that host is unreachable (for
+example Claude Code cloud sessions, whose security proxy blocks it), use
+cookies_from_string() instead - the action endpoints all live on
+fantasy.premierleague.com, which is reachable.
+
+SAFETY
+------
+Every mutating method takes confirm=False by default. In that mode it prints
+the exact JSON it would POST and returns it without contacting FPL. Pass
+confirm=True only once the payload looks right.
+
+CLASSES
+-------
+
+FPLTeam
+-------
+Async context manager wrapping an authenticated aiohttp session.
+
+Constructor:
+  FPLTeam(cookies, team_id=TEAM_ID)
+  - cookies: dict from login() or cookies_from_string()
+  - team_id: FPL entry id, defaults to constants.TEAM_ID
+
+Methods:
+
+  get_my_team() -> dict
+  - Current squad with per-player selling_price and purchase_price, plus
+    chips and transfer state (bank, value, free transfer limit)
+  - Raises a clear error on 403, which means the cookies have expired
+
+  get_current_gameweek() -> int
+  - The next gameweek to be played (is_next), falling back to is_current
+
+  set_lineup(picks, chip=None, confirm=False) -> dict
+  - Saves starting XI, bench order, captain and vice-captain
+  - chip: "bench_boost" or "triple_captain"
+  - picks come from build_picks()
+
+  make_transfers(transfers, gameweek=None, chip=None, confirm=False) -> dict
+  - chip: "wildcard" or "free_hit" to make the transfers free
+  - transfers come from plan_transfers()
+
+  plan_transfers(moves, players_by_id) -> list
+  - Turns [(element_out, element_in), ...] into a priced transfers list
+  - Reads selling_price from the live squad, which is the only place the
+    50% sell-on fee is accounted for. Do not use now_cost to sell.
+
+FUNCTIONS
+---------
+
+  build_picks(starting_xi, bench, captain, vice_captain) -> list
+  - starting_xi: 11 ids, goalkeeper first
+  - bench: 4 ids in substitution priority, reserve goalkeeper first
+  - Assigns positions 1-11 to the XI and 12-15 to the bench
+
+  validate_lineup(picks, players_by_id) -> list
+  - Returns a list of human-readable problems; empty means legal
+  - Checks squad size, position numbering, 1 GK / 3-5 DEF / 1-3 FWD in the
+    XI, reserve keeper at position 12, and captain/vice validity
+  - Run this before set_lineup() to catch errors without a round trip
+
+  save_cookies(cookies) / load_cookies()
+  - Persist to .credentials (gitignored, chmod 600)
+
+USAGE EXAMPLES
+--------------
+
+Save a session once:
+
+  python3 fpl_actions.py --cookie "pl_profile=...; sessionid=...; csrftoken=..."
+  python3 fpl_actions.py --email you@example.com          # Playwright login
+  python3 fpl_actions.py --email you@example.com --show-browser   # for captchas
+
+Set a lineup:
+
+  import asyncio, pandas as pd
+  from fpl_actions import FPLTeam, load_cookies, build_picks, validate_lineup
+
+  players = pd.read_csv("data/players.csv").set_index("id")
+  players_by_id = players.to_dict("index")
+
+  picks = build_picks(
+      starting_xi=[...11 ids, GK first...],
+      bench=[...4 ids, reserve GK first...],
+      captain=..., vice_captain=...)
+
+  errors = validate_lineup(picks, players_by_id)
+  assert not errors, errors
+
+  async def main():
+      async with FPLTeam(load_cookies()) as team:
+          await team.set_lineup(picks)                  # dry run, prints JSON
+          await team.set_lineup(picks, confirm=True)    # actually saves
+  asyncio.run(main())
+
+Make transfers:
+
+  async def main():
+      async with FPLTeam(load_cookies()) as team:
+          moves = [(out_id, in_id)]
+          transfers = await team.plan_transfers(moves, players_by_id)
+          await team.make_transfers(transfers)                 # dry run
+          await team.make_transfers(transfers, confirm=True)   # applies
+  asyncio.run(main())
+
+CHIPS
+-----
+  bench_boost, triple_captain  -> set_lineup(chip=...)
+  wildcard, free_hit           -> make_transfers(chip=...)
+
+NOTES
+-----
+- Cookies expire; a 403 from get_my_team() means refresh them
+- selling_price and purchase_price are in 0.1m units, as elsewhere in the API
+- Only one chip can be played per gameweek
+
+VERSION HISTORY
+===============
+
+v1.0 - Login via Playwright or copied cookies, dry-run-by-default lineup and
+       transfer writes, offline lineup validation
