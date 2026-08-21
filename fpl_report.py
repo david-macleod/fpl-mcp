@@ -482,9 +482,6 @@ nav.tabs label:hover{color:var(--chalk)}
   text-transform:uppercase;color:var(--amber);margin:0 0 10px}
 .verdict p{margin:0 0 8px;font-size:13.2px;line-height:1.5;color:#D2DCE6}
 .verdict p:last-of-type{margin:0}
-.verdict .disclaimer{margin-top:12px;font-family:var(--mono);font-size:9.5px;
-  color:var(--mute);line-height:1.5;border-top:1px solid var(--line);
-  padding-top:10px}
 @media (max-width:900px){.sheet{grid-template-columns:1fr}}
 """
 
@@ -636,9 +633,6 @@ def _team_sheet(report, pitch, shape):
         <div class="verdict">
           <p class="who">{e(hint)}</p>
           {paras}
-          <p class="disclaimer">Written in character as a parody. These are not
-             the words of any real person, and no real person is quoted,
-             endorsing or involved.</p>
         </div>"""
 
     return f"""

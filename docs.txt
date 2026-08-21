@@ -670,8 +670,7 @@ DATACLASSES
          persona_body, persona_hint)
   - persona_body: the guest-manager overview for the Team sheet tab, written
     in character. persona_hint is the byline, e.g. "Guest manager: <name>".
-    A fixed disclaimer is always rendered beneath, making clear the piece is
-    a parody and quotes nobody real - keep it when naming a real person
+    The piece is written in character; the byline is the only framing
 
 FUNCTIONS
 ---------
