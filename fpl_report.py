@@ -558,8 +558,8 @@ def render(report):
   <input type="radio" name="tabs" id="t-report" checked>
   <input type="radio" name="tabs" id="t-sheet">
   <nav class="tabs">
-    <label for="t-report">Full report</label>
-    <label for="t-sheet">Team sheet</label>
+    <label for="t-report" data-tab="report">Full report</label>
+    <label for="t-sheet" data-tab="sheet">Team sheet</label>
   </nav>
 
   <div class="panel p-report">
@@ -583,6 +583,23 @@ def render(report):
 
   <div class="panel p-sheet">{sheet}</div>
 </div>
+
+<script>
+(function(){{
+  var map={{sheet:'t-sheet',report:'t-report'}};
+  function apply(){{
+    var id=map[(location.hash||'').replace('#','')];
+    if(id){{var el=document.getElementById(id); if(el) el.checked=true;}}
+  }}
+  apply();
+  window.addEventListener('hashchange',apply);
+  document.querySelectorAll('nav.tabs label').forEach(function(l){{
+    l.addEventListener('click',function(){{
+      history.replaceState(null,'','#'+l.dataset.tab);
+    }});
+  }});
+}})();
+</script>
 
 <footer>
   <span>Generated {e(generated)}</span>

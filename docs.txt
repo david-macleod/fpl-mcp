@@ -668,9 +668,10 @@ DATACLASSES
          transfer_status, xi, bench, transfers, chips, chip_decision,
          captain_note, sections, caveats, projected_points, generated,
          persona_body, persona_hint)
-  - persona_body: the guest-pundit overview for the Team sheet tab, written
-    in character. persona_hint labels it. A fixed disclaimer is always
-    rendered beneath, making clear it is a parody and quotes nobody real
+  - persona_body: the guest-manager overview for the Team sheet tab, written
+    in character. persona_hint is the byline, e.g. "Guest manager: <name>".
+    A fixed disclaimer is always rendered beneath, making clear the piece is
+    a parody and quotes nobody real - keep it when naming a real person
 
 FUNCTIONS
 ---------
@@ -693,7 +694,10 @@ NOTES
 - Two tabs, switched with CSS only (radio inputs plus :checked siblings), so
   no script is needed: "Full report" is the long form, "Team sheet" is a
   compressed side-by-side of the XI and the verdict, sized to fit a single
-  screenshot (about 740px tall at desktop width)
+  screenshot (about 730px tall at desktop width)
+- Tabs are deep-linkable: gw1.html#sheet opens the Team sheet, #report the
+  long form. A small inline script syncs the hash; without script the tabs
+  still work, they just cannot be linked to
 
 VERSION HISTORY
 ===============

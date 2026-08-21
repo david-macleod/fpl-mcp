@@ -257,8 +257,8 @@ nav.tabs label:hover{color:var(--chalk)}
   <input type="radio" name="tabs" id="t-report" checked>
   <input type="radio" name="tabs" id="t-sheet">
   <nav class="tabs">
-    <label for="t-report">Full report</label>
-    <label for="t-sheet">Team sheet</label>
+    <label for="t-report" data-tab="report">Full report</label>
+    <label for="t-sheet" data-tab="sheet">Team sheet</label>
   </nav>
 
   <div class="panel p-report">
@@ -928,7 +928,7 @@ nav.tabs label:hover{color:var(--chalk)}
       </dl>
           
         <div class="verdict">
-          <p class="who">This week&#x27;s guest pundit — written in character, have a guess</p>
+          <p class="who">Guest manager: Danny Dyer</p>
           <p>Right, listen to me. Eleven transfers and it ain&#x27;t cost us a bean. Before that first deadline the game lets you swap the lot for nothing, so I&#x27;ve gutted it. The squad they handed us was a shambles, mate — no proper striker and twenty-two and a half million sat on three geezers who&#x27;ve all changed clubs over the summer. Do me a favour.</p><p>Now here&#x27;s where it gets a bit naughty. Haaland. Sixty-nine percent of the country&#x27;s got him. I&#x27;ve left him out. I know. I know. But listen. I looked at the next five weeks and Arsenal have got a run like a punch in the throat — Coventry at home, lovely, then Villa away, Chelsea, Sunderland, Brighton. Load up on that lot and you&#x27;re taking minus-four hits by week two like a mug.</p><p>So the money&#x27;s gone on Bruno Fernandes instead. Twelve mill, takes the pens, twenty-four assists last season, and United have got Hull away then Ipswich at home. That ain&#x27;t a fixture list, that&#x27;s a welcome mat. He&#x27;s got the armband.</p><p>Chips? Not a one. Wildcard and Free Hit are locked till next week anyway, Bench Boost on this bench would be like triple-captaining your nan, and I ain&#x27;t chucking the Triple Captain at a week where nobody&#x27;s kicked a ball yet.</p><p>If Haaland goes and bangs in a hat-trick tonight I&#x27;ll be sick as a dog and you can all have a go at me. But the squad&#x27;s sorted for five weeks and no club&#x27;s got more than two players in it. Job done. Lovely.</p>
           <p class="disclaimer">Written in character as a parody. These are not
              the words of any real person, and no real person is quoted,
@@ -937,6 +937,23 @@ nav.tabs label:hover{color:var(--chalk)}
         </div>
       </div></div>
 </div>
+
+<script>
+(function(){
+  var map={sheet:'t-sheet',report:'t-report'};
+  function apply(){
+    var id=map[(location.hash||'').replace('#','')];
+    if(id){var el=document.getElementById(id); if(el) el.checked=true;}
+  }
+  apply();
+  window.addEventListener('hashchange',apply);
+  document.querySelectorAll('nav.tabs label').forEach(function(l){
+    l.addEventListener('click',function(){
+      history.replaceState(null,'','#'+l.dataset.tab);
+    });
+  });
+})();
+</script>
 
 <footer>
   <span>Generated 21 Aug 2026, applied before the deadline</span>
