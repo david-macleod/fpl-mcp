@@ -93,6 +93,8 @@ class Report:
     caveats: list = field(default_factory=list)    # strings
     projected_points: float = 0.0
     generated: str = ""
+    persona_body: str = ""       # guest-pundit overview, in character
+    persona_hint: str = ""       # playful label for the mystery pundit
 
 
 # ------------------------------------------------------------------ helpers
@@ -436,6 +438,54 @@ footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
   .chip-grid{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* tabs (CSS only - no script) */
+.tabsw input{position:absolute;opacity:0;pointer-events:none}
+nav.tabs{display:flex;gap:6px;margin:26px 0 0;border-bottom:2px solid var(--line)}
+nav.tabs label{font-family:var(--display);text-transform:uppercase;
+  letter-spacing:.08em;font-size:14px;padding:11px 20px;cursor:pointer;
+  color:var(--mute);border:1px solid transparent;border-bottom:none;
+  border-radius:4px 4px 0 0;user-select:none}
+nav.tabs label:hover{color:var(--chalk)}
+.panel{display:none}
+#t-report:checked~nav.tabs label[for=t-report],
+#t-sheet:checked~nav.tabs label[for=t-sheet]{
+  color:var(--ink);background:var(--lime);border-color:var(--lime)}
+#t-report:checked~.p-report{display:block}
+#t-sheet:checked~.p-sheet{display:block}
+
+/* compressed team sheet - built to fit one screenshot */
+.sheet{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);
+  gap:20px;margin:20px 0 0;align-items:start}
+.sheet h3{margin:0 0 10px;font-size:15px;letter-spacing:.12em}
+.sheet .card{background:var(--ink-2);border:1px solid var(--line);
+  border-radius:4px;padding:16px 18px}
+.sheet .mini .pitch{padding:14px 6px;gap:11px}
+.sheet .mini .shirt-card{width:62px}
+.sheet .mini .shirt{width:34px;margin-bottom:5px}
+.sheet .mini figcaption b{font-size:12px}
+.sheet .mini figcaption .meta,.sheet .mini figcaption .opp{font-size:9px}
+.sheet .mini .armband{width:18px;height:18px;font-size:9px;right:-6px;top:-4px}
+.sheet .mini .bench{margin-top:14px}
+.sheet .mini .bench-list li{padding:8px 10px 6px}
+.sheet .mini .bench-list{gap:8px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
+  border:1px solid var(--line);margin:0 0 12px}
+.facts div{background:var(--ink-2);padding:8px 12px}
+.facts dt{font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--mute);margin:0 0 4px}
+.facts dd{margin:0;font-family:var(--display);font-size:19px;line-height:1.1}
+.facts dd.lime{color:var(--lime)}
+.verdict{background:var(--ink-2);border:1px solid var(--line);
+  border-left:3px solid var(--amber);border-radius:4px;padding:14px 16px}
+.verdict .who{font-family:var(--mono);font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);margin:0 0 10px}
+.verdict p{margin:0 0 8px;font-size:13.2px;line-height:1.5;color:#D2DCE6}
+.verdict p:last-of-type{margin:0}
+.verdict .disclaimer{margin-top:12px;font-family:var(--mono);font-size:9.5px;
+  color:var(--mute);line-height:1.5;border-top:1px solid var(--line);
+  padding-top:10px}
+@media (max-width:900px){.sheet{grid-template-columns:1fr}}
 """
 
 
@@ -482,6 +532,8 @@ def render(report):
           style="font-size:15px;color:var(--mute)"> pts</span></dd></div>
       </dl>"""
 
+    sheet = _team_sheet(report, pitch, shape)
+
     return f"""<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -502,22 +554,35 @@ def render(report):
      Decisions and the reasoning behind them.</p>
 </header>
 
-{stats}
+<div class="tabsw">
+  <input type="radio" name="tabs" id="t-report" checked>
+  <input type="radio" name="tabs" id="t-sheet">
+  <nav class="tabs">
+    <label for="t-report">Full report</label>
+    <label for="t-sheet">Team sheet</label>
+  </nav>
 
-<section id="xi">
-  <h2><span class="n">01</span> Starting XI</h2>
-  <p class="formation">FORMATION {e(shape)}</p>
-  {pitch}
-  {_bench(report.bench)}
-</section>
+  <div class="panel p-report">
+    {stats}
 
-{_transfers(report.transfers)}
-{_chips(report.chips, report.chip_decision)}
-{caps}
+    <section id="xi">
+      <h2><span class="n">01</span> Starting XI</h2>
+      <p class="formation">FORMATION {e(shape)}</p>
+      {pitch}
+      {_bench(report.bench)}
+    </section>
 
-{f'<section id="reasoning"><h2><span class="n">06</span> Decision process</h2>{_sections(report.sections)}</section>' if report.sections else ''}
+    {_transfers(report.transfers)}
+    {_chips(report.chips, report.chip_decision)}
+    {caps}
 
-{_caveats(report.caveats)}
+    {f'<section id="reasoning"><h2><span class="n">06</span> Decision process</h2>{_sections(report.sections)}</section>' if report.sections else ''}
+
+    {_caveats(report.caveats)}
+  </div>
+
+  <div class="panel p-sheet">{sheet}</div>
+</div>
 
 <footer>
   <span>Generated {e(generated)}</span>
@@ -525,3 +590,49 @@ def render(report):
 </footer>
 </div>
 </body></html>"""
+
+
+def _team_sheet(report, pitch, shape):
+    """The compressed one-screen view: team on the left, verdict on the right."""
+    captain = next((p for p in report.xi if p.is_captain), None)
+    vice = next((p for p in report.xi if p.is_vice), None)
+
+    played = [c.name for c in report.chips if c.status.upper() == "USED"]
+    chip_line = ", ".join(played) if played else "None"
+
+    facts = f"""
+      <dl class="facts">
+        <div><dt>Captain</dt><dd class="lime">{e(captain.name) if captain else '-'}</dd></div>
+        <div><dt>Vice</dt><dd>{e(vice.name) if vice else '-'}</dd></div>
+        <div><dt>Chip played</dt><dd>{e(chip_line)}</dd></div>
+        <div><dt>Transfers</dt><dd>{len(report.transfers)} · {e(report.transfer_status)}</dd></div>
+        <div><dt>Squad value</dt><dd>£{report.squad_value:.1f}m</dd></div>
+        <div><dt>Projected XI</dt><dd>{report.projected_points:.0f} pts</dd></div>
+      </dl>"""
+
+    verdict = ""
+    if report.persona_body:
+        paras = "".join(f"<p>{e(p.strip())}</p>"
+                        for p in report.persona_body.split("\n\n") if p.strip())
+        hint = report.persona_hint or "This week's guest pundit"
+        verdict = f"""
+        <div class="verdict">
+          <p class="who">{e(hint)}</p>
+          {paras}
+          <p class="disclaimer">Written in character as a parody. These are not
+             the words of any real person, and no real person is quoted,
+             endorsing or involved.</p>
+        </div>"""
+
+    return f"""
+      <div class="sheet">
+        <div>
+          <h3>The team · {e(shape)}</h3>
+          <div class="mini">{pitch}{_bench(report.bench)}</div>
+        </div>
+        <div>
+          <h3>The verdict</h3>
+          {facts}
+          {verdict}
+        </div>
+      </div>"""

@@ -193,6 +193,54 @@ footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
   .chip-grid{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* tabs (CSS only - no script) */
+.tabsw input{position:absolute;opacity:0;pointer-events:none}
+nav.tabs{display:flex;gap:6px;margin:26px 0 0;border-bottom:2px solid var(--line)}
+nav.tabs label{font-family:var(--display);text-transform:uppercase;
+  letter-spacing:.08em;font-size:14px;padding:11px 20px;cursor:pointer;
+  color:var(--mute);border:1px solid transparent;border-bottom:none;
+  border-radius:4px 4px 0 0;user-select:none}
+nav.tabs label:hover{color:var(--chalk)}
+.panel{display:none}
+#t-report:checked~nav.tabs label[for=t-report],
+#t-sheet:checked~nav.tabs label[for=t-sheet]{
+  color:var(--ink);background:var(--lime);border-color:var(--lime)}
+#t-report:checked~.p-report{display:block}
+#t-sheet:checked~.p-sheet{display:block}
+
+/* compressed team sheet - built to fit one screenshot */
+.sheet{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);
+  gap:20px;margin:20px 0 0;align-items:start}
+.sheet h3{margin:0 0 10px;font-size:15px;letter-spacing:.12em}
+.sheet .card{background:var(--ink-2);border:1px solid var(--line);
+  border-radius:4px;padding:16px 18px}
+.sheet .mini .pitch{padding:14px 6px;gap:11px}
+.sheet .mini .shirt-card{width:62px}
+.sheet .mini .shirt{width:34px;margin-bottom:5px}
+.sheet .mini figcaption b{font-size:12px}
+.sheet .mini figcaption .meta,.sheet .mini figcaption .opp{font-size:9px}
+.sheet .mini .armband{width:18px;height:18px;font-size:9px;right:-6px;top:-4px}
+.sheet .mini .bench{margin-top:14px}
+.sheet .mini .bench-list li{padding:8px 10px 6px}
+.sheet .mini .bench-list{gap:8px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
+  border:1px solid var(--line);margin:0 0 12px}
+.facts div{background:var(--ink-2);padding:8px 12px}
+.facts dt{font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--mute);margin:0 0 4px}
+.facts dd{margin:0;font-family:var(--display);font-size:19px;line-height:1.1}
+.facts dd.lime{color:var(--lime)}
+.verdict{background:var(--ink-2);border:1px solid var(--line);
+  border-left:3px solid var(--amber);border-radius:4px;padding:14px 16px}
+.verdict .who{font-family:var(--mono);font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--amber);margin:0 0 10px}
+.verdict p{margin:0 0 8px;font-size:13.2px;line-height:1.5;color:#D2DCE6}
+.verdict p:last-of-type{margin:0}
+.verdict .disclaimer{margin-top:12px;font-family:var(--mono);font-size:9.5px;
+  color:var(--mute);line-height:1.5;border-top:1px solid var(--line);
+  padding-top:10px}
+@media (max-width:900px){.sheet{grid-template-columns:1fr}}
 </style>
 </head><body>
 <div class="wrap">
@@ -205,7 +253,16 @@ footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
      Decisions and the reasoning behind them.</p>
 </header>
 
+<div class="tabsw">
+  <input type="radio" name="tabs" id="t-report" checked>
+  <input type="radio" name="tabs" id="t-sheet">
+  <nav class="tabs">
+    <label for="t-report">Full report</label>
+    <label for="t-sheet">Team sheet</label>
+  </nav>
 
+  <div class="panel p-report">
+    
       <dl class="stats">
         <div><dt>Squad value</dt><dd>£100.0m</dd></div>
         <div><dt>In the bank</dt><dd>£0.0m</dd></div>
@@ -214,10 +271,10 @@ footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
           style="font-size:15px;color:var(--mute)"> pts</span></dd></div>
       </dl>
 
-<section id="xi">
-  <h2><span class="n">01</span> Starting XI</h2>
-  <p class="formation">FORMATION 3-5-2</p>
-  <div class="pitch"><div class="turf"></div><div class="line line-gkp">
+    <section id="xi">
+      <h2><span class="n">01</span> Starting XI</h2>
+      <p class="formation">FORMATION 3-5-2</p>
+      <div class="pitch"><div class="turf"></div><div class="line line-gkp">
       <figure class="shirt-card normal">
         <div class="shirt" style="--kit:#EB172B;--trim:#FFFFFF">
           <svg viewBox="0 0 64 60" aria-hidden="true">
@@ -383,7 +440,7 @@ footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
           
         </figcaption>
       </figure></div></div>
-  
+      
     <section class="bench">
       <h3>Bench <span class="sub">reserve keeper, then outfield
         substitution order</span></h3>
@@ -449,9 +506,9 @@ footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
         </figcaption>
       </figure></li></ol>
     </section>
-</section>
+    </section>
 
-
+    
     <section id="transfers">
       <h2><span class="n">02</span> Transfers</h2>
       <table class="transfers">
@@ -548,7 +605,7 @@ footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
       </tr></tbody>
       </table>
     </section>
-
+    
     <section id="chips">
       <h2><span class="n">03</span> Chips</h2>
       <p class="decision">No chip in GW1. Wildcard and Free Hit are locked until GW2, and neither chip that is playable earns its keep this week.</p>
@@ -594,7 +651,7 @@ footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
             
           </div></div></div></div>
     </section>
-
+    
         <section id="captain">
           <h2><span class="n">04</span> Captaincy</h2>
           <div class="captains">
@@ -613,13 +670,273 @@ footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
           <div class="note"><p>Bruno Fernandes takes the armband away from Gabriel, who the model actually rates higher on mean points (8.7 to 7.4). Captaincy is chosen on ceiling rather than mean: Gabriel&#x27;s realistic maximum is around 15 points, while Fernandes has goals, assists and penalties against a promoted side away from home.</p><p>Gabriel keeps the vice-captaincy, so a Fernandes no-show still falls to the highest projected player in the team.</p></div>
         </section>
 
-<section id="reasoning"><h2><span class="n">06</span> Decision process</h2><div class="note default"><h3>Eleven transfers that cost nothing</h3><p>The API reported transfer status `unlimited` with a null limit: before the first deadline every transfer is free, so the default squad was rebuilt outright rather than nursed. Spend lands on £100.0m exactly with £0.0m in the bank.</p><p>Transfers must be position-matched, so the rebuild runs as eleven like-for-like swaps: both keepers, four defenders, four midfielders and one forward. Tarkowski, Rice, Thiago and João Pedro were kept.</p></div><div class="note default"><h3>Why the fixture horizon changed the squad</h3><p>A first pass built for Gameweek 1 alone tripled up on Arsenal. Extending the view to Gameweeks 1-5 killed that idea: Arsenal hold the worst run of any strong side at 3.20 average difficulty - Coventry at home, then Villa away, Chelsea at home, Sunderland away and Brighton away. A squad built on them scores well once and then needs -4 hits to repair.</p><p>The best runs belong to Liverpool at 2.60, then Manchester City, Manchester United and Leeds at 2.80. No club now contributes more than two players, so the squad can absorb a bad fixture without forced surgery.</p></div><div class="note warn"><h3>Fading a 69% owned forward</h3><p>Haaland was left out. On projected points the two builds are level, so the tiebreak is structure: £15.5m on one player forces cheap filler elsewhere, and the Haaland build concentrated Arsenal assets into that poor run. Bruno Fernandes costs £3.5m less and carries the higher Gameweek 2-5 projection of the two.</p><p>The risk is stated plainly rather than buried. Haaland is owned by 69.4% of managers and captained by many of them. If he returns against Bournemouth this squad loses ground to most of the field in week one. That is a rank cost accepted in exchange for a points structure that holds for five weeks.</p></div></section>
+    <section id="reasoning"><h2><span class="n">06</span> Decision process</h2><div class="note default"><h3>Eleven transfers that cost nothing</h3><p>The API reported transfer status `unlimited` with a null limit: before the first deadline every transfer is free, so the default squad was rebuilt outright rather than nursed. Spend lands on £100.0m exactly with £0.0m in the bank.</p><p>Transfers must be position-matched, so the rebuild runs as eleven like-for-like swaps: both keepers, four defenders, four midfielders and one forward. Tarkowski, Rice, Thiago and João Pedro were kept.</p></div><div class="note default"><h3>Why the fixture horizon changed the squad</h3><p>A first pass built for Gameweek 1 alone tripled up on Arsenal. Extending the view to Gameweeks 1-5 killed that idea: Arsenal hold the worst run of any strong side at 3.20 average difficulty - Coventry at home, then Villa away, Chelsea at home, Sunderland away and Brighton away. A squad built on them scores well once and then needs -4 hits to repair.</p><p>The best runs belong to Liverpool at 2.60, then Manchester City, Manchester United and Leeds at 2.80. No club now contributes more than two players, so the squad can absorb a bad fixture without forced surgery.</p></div><div class="note warn"><h3>Fading a 69% owned forward</h3><p>Haaland was left out. On projected points the two builds are level, so the tiebreak is structure: £15.5m on one player forces cheap filler elsewhere, and the Haaland build concentrated Arsenal assets into that poor run. Bruno Fernandes costs £3.5m less and carries the higher Gameweek 2-5 projection of the two.</p><p>The risk is stated plainly rather than buried. Haaland is owned by 69.4% of managers and captained by many of them. If he returns against Bournemouth this squad loses ground to most of the field in week one. That is a rank cost accepted in exchange for a points structure that holds for five weeks.</p></div></section>
 
-
+    
     <section id="caveats">
       <h2><span class="n">05</span> What this model cannot see</h2>
       <ul class="caveats"><li>Projections are last season&#x27;s points-per-start, scaled by start reliability, fixture difficulty and home advantage. No expected-goals modelling and no minutes projection.</li><li>Eight candidate squads spanned only 71.9 to 75.0 projected points. That gap sits inside the model&#x27;s error, so this is a good answer rather than a provably optimal one.</li><li>Club-changers carry rates earned elsewhere. Guéhi&#x27;s 179 points came at Crystal Palace and Semenyo&#x27;s 202 at Bournemouth; the assumption that output transfers is the one that most often breaks.</li><li>Team news for the Saturday fixtures lands after the deadline. Line-ups are unknown at the point these decisions were locked in.</li></ul>
     </section>
+  </div>
+
+  <div class="panel p-sheet">
+      <div class="sheet">
+        <div>
+          <h3>The team · 3-5-2</h3>
+          <div class="mini"><div class="pitch"><div class="turf"></div><div class="line line-gkp">
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#EB172B;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Roefs</b>
+          <span class="meta">SUN · £5.0m</span>
+          <span class="opp"><i class="d d2"></i>IPS (A)</span>
+          
+        </figcaption>
+      </figure></div><div class="line line-def">
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#EF0107;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          <span class="armband vice" title="Vice-captain">V</span>
+        </div>
+        <figcaption>
+          <b>Gabriel</b>
+          <span class="meta">ARS · £8.0m</span>
+          <span class="opp"><i class="d d2"></i>COV (H)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#EB172B;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Mukiele</b>
+          <span class="meta">SUN · £5.5m</span>
+          <span class="opp"><i class="d d2"></i>IPS (A)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#6CABDD;--trim:#1C2C5B">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Guéhi</b>
+          <span class="meta">MCI · £6.0m</span>
+          <span class="opp"><i class="d d3"></i>BOU (H)</span>
+          
+        </figcaption>
+      </figure></div><div class="line line-mid">
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#DA291C;--trim:#FBE122">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          <span class="armband" title="Captain">C</span>
+        </div>
+        <figcaption>
+          <b>B.Fernandes</b>
+          <span class="meta">MUN · £12.0m</span>
+          <span class="opp"><i class="d d2"></i>HUL (A)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#DD0000;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Gibbs-White</b>
+          <span class="meta">NFO · £8.0m</span>
+          <span class="opp"><i class="d d2"></i>LEE (H)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#EF0107;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Rice</b>
+          <span class="meta">ARS · £7.5m</span>
+          <span class="opp"><i class="d d2"></i>COV (H)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#6CABDD;--trim:#1C2C5B">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Anderson</b>
+          <span class="meta">MCI · £6.5m</span>
+          <span class="opp"><i class="d d3"></i>BOU (H)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#1D428A;--trim:#FFCD00">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Wilson</b>
+          <span class="meta">LEE · £6.5m</span>
+          <span class="opp"><i class="d d3"></i>NFO (A)</span>
+          
+        </figcaption>
+      </figure></div><div class="line line-fwd">
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#034694;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>João Pedro</b>
+          <span class="meta">CHE · £7.5m</span>
+          <span class="opp"><i class="d d3"></i>FUL (A)</span>
+          
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt" style="--kit:#E30613;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Thiago</b>
+          <span class="meta">BRE · £8.0m</span>
+          <span class="opp"><i class="d d3"></i>TOT (H)</span>
+          
+        </figcaption>
+      </figure></div></div>
+    <section class="bench">
+      <h3>Bench <span class="sub">reserve keeper, then outfield
+        substitution order</span></h3>
+      <ol class="bench-list"><li class="gk-slot"><span class="ord gk">GK</span>
+      <figure class="shirt-card small">
+        <div class="shirt" style="--kit:#132257;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Dubravka</b>
+          <span class="meta">TOT · £4.0m</span>
+          <span class="opp"><i class="d d3"></i>BRE (A)</span>
+          
+        </figcaption>
+      </figure></li><li><span class="ord">1</span>
+      <figure class="shirt-card small">
+        <div class="shirt" style="--kit:#003399;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Tarkowski</b>
+          <span class="meta">EVE · £6.0m</span>
+          <span class="opp"><i class="d d3"></i>CRY (H)</span>
+          
+        </figcaption>
+      </figure></li><li><span class="ord">2</span>
+      <figure class="shirt-card small">
+        <div class="shirt" style="--kit:#DD0000;--trim:#FFFFFF">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>N.Williams</b>
+          <span class="meta">NFO · £5.0m</span>
+          <span class="opp"><i class="d d2"></i>LEE (H)</span>
+          
+        </figcaption>
+      </figure></li><li><span class="ord">3</span>
+      <figure class="shirt-card small">
+        <div class="shirt" style="--kit:#DA291C;--trim:#FBE122">
+          <svg viewBox="0 0 64 60" aria-hidden="true">
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
+                     C40 10 24 10 20 4 Z"/>
+          </svg>
+          
+        </div>
+        <figcaption>
+          <b>Obi</b>
+          <span class="meta">MUN · £4.5m</span>
+          <span class="opp"><i class="d d2"></i>HUL (A)</span>
+          <em class="flag">bench fodder</em>
+        </figcaption>
+      </figure></li></ol>
+    </section></div>
+        </div>
+        <div>
+          <h3>The verdict</h3>
+          
+      <dl class="facts">
+        <div><dt>Captain</dt><dd class="lime">B.Fernandes</dd></div>
+        <div><dt>Vice</dt><dd>Gabriel</dd></div>
+        <div><dt>Chip played</dt><dd>None</dd></div>
+        <div><dt>Transfers</dt><dd>11 · Unlimited</dd></div>
+        <div><dt>Squad value</dt><dd>£100.0m</dd></div>
+        <div><dt>Projected XI</dt><dd>66 pts</dd></div>
+      </dl>
+          
+        <div class="verdict">
+          <p class="who">This week&#x27;s guest pundit — written in character, have a guess</p>
+          <p>Right, listen to me. Eleven transfers and it ain&#x27;t cost us a bean. Before that first deadline the game lets you swap the lot for nothing, so I&#x27;ve gutted it. The squad they handed us was a shambles, mate — no proper striker and twenty-two and a half million sat on three geezers who&#x27;ve all changed clubs over the summer. Do me a favour.</p><p>Now here&#x27;s where it gets a bit naughty. Haaland. Sixty-nine percent of the country&#x27;s got him. I&#x27;ve left him out. I know. I know. But listen. I looked at the next five weeks and Arsenal have got a run like a punch in the throat — Coventry at home, lovely, then Villa away, Chelsea, Sunderland, Brighton. Load up on that lot and you&#x27;re taking minus-four hits by week two like a mug.</p><p>So the money&#x27;s gone on Bruno Fernandes instead. Twelve mill, takes the pens, twenty-four assists last season, and United have got Hull away then Ipswich at home. That ain&#x27;t a fixture list, that&#x27;s a welcome mat. He&#x27;s got the armband.</p><p>Chips? Not a one. Wildcard and Free Hit are locked till next week anyway, Bench Boost on this bench would be like triple-captaining your nan, and I ain&#x27;t chucking the Triple Captain at a week where nobody&#x27;s kicked a ball yet.</p><p>If Haaland goes and bangs in a hat-trick tonight I&#x27;ll be sick as a dog and you can all have a go at me. But the squad&#x27;s sorted for five weeks and no club&#x27;s got more than two players in it. Job done. Lovely.</p>
+          <p class="disclaimer">Written in character as a parody. These are not
+             the words of any real person, and no real person is quoted,
+             endorsing or involved.</p>
+        </div>
+        </div>
+      </div></div>
+</div>
 
 <footer>
   <span>Generated 21 Aug 2026, applied before the deadline</span>
