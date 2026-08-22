@@ -46,9 +46,9 @@ POSITION_ORDER = {"GKP": 0, "DEF": 1, "MID": 2, "FWD": 3}
 # just as recognisable on the page and carry no question of putting words in
 # a living person's mouth.
 GUEST_MANAGERS = [
-    ("Danny Dyer",
-     "Cockney geezer. Direct address, 'listen to me', 'do me a favour', "
-     "'proper', 'sort it out'. Warm but exasperated. Used GW1."),
+    ("The Dowager Countess",
+     "Fictional. Withering aristocratic put-downs delivered as courtesy. "
+     "Bafflement at modern life. Every sentence lands as a closing remark."),
     ("Roy Keane",
      "Withering contempt in short sentences. 'Not good enough.' Refuses to "
      "be impressed by anything. Devastating when something goes well."),
@@ -64,24 +64,25 @@ GUEST_MANAGERS = [
     ("Jose Mourinho",
      "Third person, wounded superiority, 'if I speak I am in big trouble'. "
      "Every setback is a conspiracy, every success is proof."),
-    ("Sherlock Holmes",
-     "Fictional. Deduction as narration - 'you see but you do not observe'. "
-     "Fixture difficulty read like a crime scene. Contempt for the obvious."),
-    ("David Brent",
-     "Fictional. Management-speak as self-mythology, jokes he explains, "
-     "cringing pivots to how well he is handling it all."),
-    ("Peter Drury",
-     "Commentary as scripture. Florid, rhetorical, builds to a crescendo "
-     "over something trivial. 'And in the end...'"),
+    ("Sir Alex Ferguson",
+     "Hairdryer restraint. Squeaky bum time, knowing asides about bottle "
+     "and character, a grudge held in perfect working order."),
+    ("Gollum",
+     "Fictional. Split personality arguing both sides of the captaincy "
+     "call. Hissing possessives, sudden self-loathing. Perfect for a "
+     "decision agonised over."),
+    ("Jeremy Clarkson",
+     "Hyperbolic superlatives, absurd comparisons, the cheapest bench "
+     "player described as a national disgrace. Builds to 'and yet'."),
     ("Arnold Schwarzenegger",
      "Clipped imperatives, bodybuilding framing, 'come on', total "
      "conviction. No hedging anywhere."),
     ("Yoda",
      "Fictional. Inverted syntax, patient gnomic wisdom about patience and "
      "greed. Reads instantly on the page, needs no voice."),
-    ("Hunter S. Thompson",
-     "Gonzo dread. The transfer deadline as a bad trip, paranoid asides, "
-     "sudden lucid savagery about the whole enterprise."),
+    ("Marcus Aurelius",
+     "Meditations. Calm stoic acceptance of variance, second person "
+     "addressed to himself, the bench as a lesson in impermanence."),
 ]
 
 
