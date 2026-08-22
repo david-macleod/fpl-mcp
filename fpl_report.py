@@ -46,15 +46,15 @@ POSITION_ORDER = {"GKP": 0, "DEF": 1, "MID": 2, "FWD": 3}
 # just as recognisable on the page and carry no question of putting words in
 # a living person's mouth.
 GUEST_MANAGERS = [
-    ("The Dowager Countess",
-     "Fictional. Withering aristocratic put-downs delivered as courtesy. "
-     "Bafflement at modern life. Every sentence lands as a closing remark."),
+    ("Brian Blessed",
+     "BELLOWING. Caps for emphasis, enormous appetite for everything, "
+     "Shakespearean overstatement about a goalkeeper clean sheet."),
     ("Roy Keane",
      "Withering contempt in short sentences. 'Not good enough.' Refuses to "
      "be impressed by anything. Devastating when something goes well."),
     ("Alan Partridge",
-     "Fictional. Misplaced confidence, tortured sporting metaphors, "
-     "needless specifics, sudden defensiveness. 'Back of the net.'"),
+     "Misplaced confidence, tortured sporting metaphors, needless "
+     "specifics, sudden defensiveness. 'Back of the net.'"),
     ("Gordon Ramsay",
      "Kitchen fury. Food similes for bad decisions, RAW, escalating "
      "rhetorical questions. Keep it broadcast-clean."),
@@ -67,22 +67,21 @@ GUEST_MANAGERS = [
     ("Sir Alex Ferguson",
      "Hairdryer restraint. Squeaky bum time, knowing asides about bottle "
      "and character, a grudge held in perfect working order."),
-    ("Gollum",
-     "Fictional. Split personality arguing both sides of the captaincy "
-     "call. Hissing possessives, sudden self-loathing. Perfect for a "
-     "decision agonised over."),
+    ("Simon Cowell",
+     "The verdict format. 'I'm going to be honest with you.' Brutal, "
+     "unhurried, oddly kind at the end. Sits in judgement on the squad."),
     ("Jeremy Clarkson",
      "Hyperbolic superlatives, absurd comparisons, the cheapest bench "
      "player described as a national disgrace. Builds to 'and yet'."),
     ("Arnold Schwarzenegger",
      "Clipped imperatives, bodybuilding framing, 'come on', total "
      "conviction. No hedging anywhere."),
-    ("Yoda",
-     "Fictional. Inverted syntax, patient gnomic wisdom about patience and "
-     "greed. Reads instantly on the page, needs no voice."),
-    ("Marcus Aurelius",
-     "Meditations. Calm stoic acceptance of variance, second person "
-     "addressed to himself, the bench as a lesson in impermanence."),
+    ("Chris Kamara",
+     "Delighted football chaos. 'Unbelievable, Jeff!' Missing the obvious "
+     "then over-celebrating the trivial. Relentlessly cheerful."),
+    ("Jurgen Klopp",
+     "Boom. Enthusiastic German syntax, heavy metal football, 'this is "
+     "what I say', beaming even when complaining."),
 ]
 
 
