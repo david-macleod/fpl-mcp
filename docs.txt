@@ -672,6 +672,14 @@ DATACLASSES
     in character. persona_hint is the byline, e.g. "Guest manager: <name>".
     The piece is written in character; the byline is the only framing
 
+  GUEST_MANAGERS / persona_for(gameweek)
+  - A fixed rotation of ten voices for the Team sheet verdict, each with a
+    note on how it reads on the page. persona_for() picks by gameweek, so the
+    schedule can be stated in advance and re-running an old gameweek
+    reproduces the same guest
+  - Chosen for voices that are unmistakable in writing alone. Fictional
+    characters are mixed in with real people deliberately
+
 FUNCTIONS
 ---------
   render(report) -> str

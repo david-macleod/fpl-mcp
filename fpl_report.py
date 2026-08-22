@@ -37,6 +37,57 @@ DEFAULT_COLOURS = ("#2A3A4A", "#FFFFFF")
 POSITION_ORDER = {"GKP": 0, "DEF": 1, "MID": 2, "FWD": 3}
 
 
+# Guest managers for the Team sheet verdict, in rotation. Chosen for voices
+# that are unmistakable in *writing* alone - cadence, vocabulary and verbal
+# tics that survive without a voice or a face. A persona that only works as
+# an impression of a sound does not belong here.
+#
+# Fictional characters are deliberately mixed in with real people: they are
+# just as recognisable on the page and carry no question of putting words in
+# a living person's mouth.
+GUEST_MANAGERS = [
+    ("Danny Dyer",
+     "Cockney geezer. Direct address, 'listen to me', 'do me a favour', "
+     "'proper', 'sort it out'. Warm but exasperated."),
+    ("Werner Herzog",
+     "Bleak Bavarian awe. The bench as an indifferent universe. Long "
+     "sentences about futility, delivered with total sincerity."),
+    ("Alan Partridge",
+     "Fictional. Misplaced confidence, tortured sporting metaphors, "
+     "needless specifics, sudden defensiveness. 'Back of the net.'"),
+    ("Gordon Ramsay",
+     "Kitchen fury. Food similes for bad decisions, RAW, escalating "
+     "rhetorical questions. Keep it broadcast-clean."),
+    ("David Attenborough",
+     "Hushed wonder. The squad as a fragile ecosystem, the bench fodder as "
+     "a species facing a hard winter."),
+    ("Jeff Goldblum",
+     "Halting, uh, recursive. Self-interrupting clauses, delight in the "
+     "absurdity of the whole, the whole enterprise, really."),
+    ("Ron Burgundy",
+     "Fictional. Pompous anchorman gravitas about trivia. Non-sequiturs "
+     "stated as fact. Refers to himself in the third person."),
+    ("Louis Theroux",
+     "Gently awkward. Disarming questions, long pauses rendered as ellipses, "
+     "quiet devastating observations phrased as innocent curiosity."),
+    ("Bob Ross",
+     "Soothing permanence. No bad transfers, only happy accidents. The "
+     "bench is a happy little bench."),
+    ("Arnold Schwarzenegger",
+     "Clipped imperatives, bodybuilding framing, 'come on', total "
+     "conviction. No hedging anywhere."),
+]
+
+
+def persona_for(gameweek):
+    """Returns the (name, voice note) whose turn it is.
+
+    A fixed rotation rather than a random draw, so the schedule can be
+    stated in advance and a re-run of an old gameweek reproduces it.
+    """
+    return GUEST_MANAGERS[(gameweek - 1) % len(GUEST_MANAGERS)]
+
+
 @dataclass
 class Player:
     name: str
