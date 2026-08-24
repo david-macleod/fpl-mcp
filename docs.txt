@@ -7,6 +7,7 @@ MODULES OVERVIEW
 ================
 
 1. fpl_analyzer.py - Core analysis functionality
+0. fpl_projection.py - Per-gameweek points projections (season-rollover safe)
 2. fpl_actions.py - Authenticated login, lineup saving and transfers
 3. fpl_report.py - Self-contained HTML gameweek report
 4. [Future modules will be documented here]
@@ -705,6 +706,48 @@ NOTES
 - Tabs are deep-linkable: gw1.html#sheet opens the Team sheet, #report the
   long form. A small inline script syncs the hash; without script the tabs
   still work, they just cannot be linked to
+
+fpl_projection.py
+=================
+
+Per-gameweek points projections.
+
+THE TRAP THIS EXISTS TO AVOID
+-----------------------------
+bootstrap-static resets total_points, starts and minutes at the season
+rollover. Any model reading those fields silently degrades to noise in GW1
+and stays there for weeks - every player collapses to the same price-implied
+prior and the rankings become meaningless. This was live in the GW1 model and
+was only caught when GW2 projections came back flat at ~1.0 across the board.
+
+Last season's record survives only in each player's element-summary, under
+history_past. Cache it once per season.
+
+  Projector(bootstrap, fixtures, history_past)
+    .project(element, gameweek) -> dict or None
+    .horizon(element, first, last) -> float
+    .fixture(team_id, gameweek) -> (opponent, difficulty, is_home)
+    .availability(element) -> (multiplier, flag)
+
+HOW A PROJECTION IS BUILT
+-------------------------
+points per 90 x reliability x fixture multiplier x home/away x availability
+
+  - last season's rate needs 450+ minutes to be trusted at all
+  - this season's rate is blended in as minutes accumulate
+  - players with NO Premier League record (promoted clubs, overseas signings)
+    are shrunk toward a price-implied prior. Without this a newcomer with one
+    good match reads as a superstar: 14 points in 75 minutes scales to 16.8
+    per 90. Shrinkage weight is mins/(mins+540)
+  - defenders and keepers get a harder fixture swing than attackers, since
+    they live on clean sheets
+
+VERSION HISTORY
+===============
+
+v1.0 - Season-rollover-safe projections with newcomer shrinkage.
+
+fpl_report.py rendering history follows.
 
 VERSION HISTORY
 ===============
