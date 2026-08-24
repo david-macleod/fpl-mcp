@@ -67,10 +67,10 @@ GUEST_MANAGERS = [
     ("Sir Alex Ferguson",
      "Hairdryer restraint. Squeaky bum time, knowing asides about bottle "
      "and character, a grudge held in perfect working order."),
-    ("Nigella Lawson",
-     "Sensuous indulgence. Rich adjectives, intimate second person, a "
-     "£4.5m bench forward described like something taken from the fridge "
-     "at midnight. Total tonal relief from the shouters."),
+    ("Alan Sugar",
+     "Boardroom brusqueness. Dismissals delivered as verdicts, 'with all "
+     "due respect' meaning the opposite, pointing-finger energy. Sits in "
+     "judgement on the squad and fires the bench fodder."),
     ("Jeremy Clarkson",
      "Hyperbolic superlatives, absurd comparisons, the cheapest bench "
      "player described as a national disgrace. Builds to 'and yet'."),
@@ -80,10 +80,10 @@ GUEST_MANAGERS = [
     ("Chris Kamara",
      "Delighted football chaos. 'Unbelievable, Jeff!' Missing the obvious "
      "then over-celebrating the trivial. Relentlessly cheerful."),
-    ("Geoffrey Boycott",
-     "Yorkshire dismissal. 'My grandmother could have played that with a "
-     "stick of rhubarb.' Corridor of uncertainty, plain speaking as a "
-     "moral position."),
+    ("Peter Kay",
+     "Northern warmth. Domestic detail, a whole routine built out of "
+     "something trivial like the bench order, circling back to the same "
+     "joke until it is funnier."),
 ]
 
 
