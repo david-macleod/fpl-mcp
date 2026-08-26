@@ -90,8 +90,7 @@ h3 .sub{font-family:var(--body);text-transform:none;letter-spacing:0;
 @keyframes rise{from{opacity:0;transform:translateY(14px)}}
 .shirt{position:relative;width:52px;margin:0 auto 8px;filter:
   drop-shadow(0 6px 10px #0006)}
-.shirt svg{width:100%;display:block;fill:var(--kit);
-  stroke:var(--trim);stroke-width:2.5}
+.shirt svg{width:100%;display:block}
 .shirt-card.small{width:74px}
 .shirt-card.small .shirt{width:38px}
 .armband{position:absolute;right:-8px;top:-6px;width:24px;height:24px;
@@ -240,6 +239,7 @@ nav.tabs label:hover{color:var(--chalk)}
 @media (max-width:900px){.sheet{grid-template-columns:1fr}}
 </style>
 </head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="shirt-clip"><path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z"/></clipPath></defs></svg>
 <div class="wrap">
 
 <header class="mast">
@@ -273,13 +273,11 @@ nav.tabs label:hover{color:var(--chalk)}
       <p class="formation">FORMATION 3-5-2</p>
       <div class="pitch"><div class="turf"></div><div class="line line-gkp">
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#EB172B;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Roefs</b>
           <span class="meta">SUN · £5.0m</span>
@@ -288,13 +286,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></div><div class="line line-def">
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#EF0107;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          <span class="armband vice" title="Vice-captain">V</span>
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/><rect x="13" y="0" width="38" height="60" fill="#EF0107"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg><span class="armband vice" title="Vice-captain">V</span></div>
         <figcaption>
           <b>Gabriel</b>
           <span class="meta">ARS · £8.0m</span>
@@ -303,13 +299,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#EB172B;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Mukiele</b>
           <span class="meta">SUN · £5.5m</span>
@@ -318,13 +312,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#6CABDD;--trim:#1C2C5B">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#6CABDD"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Guéhi</b>
           <span class="meta">MCI · £6.0m</span>
@@ -333,13 +325,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></div><div class="line line-mid">
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#DA291C;--trim:#FBE122">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          <span class="armband" title="Captain">C</span>
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DA291C"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg><span class="armband" title="Captain">C</span></div>
         <figcaption>
           <b>B.Fernandes</b>
           <span class="meta">MUN · £12.0m</span>
@@ -348,13 +338,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#DD0000;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DD0000"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Gibbs-White</b>
           <span class="meta">NFO · £8.0m</span>
@@ -363,13 +351,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#EF0107;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/><rect x="13" y="0" width="38" height="60" fill="#EF0107"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Rice</b>
           <span class="meta">ARS · £7.5m</span>
@@ -378,13 +364,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#6CABDD;--trim:#1C2C5B">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#6CABDD"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Anderson</b>
           <span class="meta">MCI · £6.5m</span>
@@ -393,13 +377,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#1D428A;--trim:#FFCD00">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Wilson</b>
           <span class="meta">LEE · £6.5m</span>
@@ -408,13 +390,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></div><div class="line line-fwd">
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#034694;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#034694"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>João Pedro</b>
           <span class="meta">CHE · £7.5m</span>
@@ -423,13 +403,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#E30613;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#E30613"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#E30613"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#E30613"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Thiago</b>
           <span class="meta">BRE · £8.0m</span>
@@ -443,13 +421,11 @@ nav.tabs label:hover{color:var(--chalk)}
         substitution order</span></h3>
       <ol class="bench-list"><li class="gk-slot"><span class="ord gk">GK</span>
       <figure class="shirt-card small">
-        <div class="shirt" style="--kit:#132257;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Dubravka</b>
           <span class="meta">TOT · £4.0m</span>
@@ -458,13 +434,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></li><li><span class="ord">1</span>
       <figure class="shirt-card small">
-        <div class="shirt" style="--kit:#003399;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#003399"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Tarkowski</b>
           <span class="meta">EVE · £6.0m</span>
@@ -473,13 +447,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></li><li><span class="ord">2</span>
       <figure class="shirt-card small">
-        <div class="shirt" style="--kit:#DD0000;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DD0000"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>N.Williams</b>
           <span class="meta">NFO · £5.0m</span>
@@ -488,13 +460,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></li><li><span class="ord">3</span>
       <figure class="shirt-card small">
-        <div class="shirt" style="--kit:#DA291C;--trim:#FBE122">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DA291C"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Obi</b>
           <span class="meta">MUN · £4.5m</span>
@@ -682,13 +652,11 @@ nav.tabs label:hover{color:var(--chalk)}
           <h3>The team · 3-5-2</h3>
           <div class="mini"><div class="pitch"><div class="turf"></div><div class="line line-gkp">
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#EB172B;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Roefs</b>
           <span class="meta">SUN · £5.0m</span>
@@ -697,13 +665,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></div><div class="line line-def">
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#EF0107;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          <span class="armband vice" title="Vice-captain">V</span>
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/><rect x="13" y="0" width="38" height="60" fill="#EF0107"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg><span class="armband vice" title="Vice-captain">V</span></div>
         <figcaption>
           <b>Gabriel</b>
           <span class="meta">ARS · £8.0m</span>
@@ -712,13 +678,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#EB172B;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Mukiele</b>
           <span class="meta">SUN · £5.5m</span>
@@ -727,13 +691,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#6CABDD;--trim:#1C2C5B">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#6CABDD"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Guéhi</b>
           <span class="meta">MCI · £6.0m</span>
@@ -742,13 +704,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></div><div class="line line-mid">
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#DA291C;--trim:#FBE122">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          <span class="armband" title="Captain">C</span>
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DA291C"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg><span class="armband" title="Captain">C</span></div>
         <figcaption>
           <b>B.Fernandes</b>
           <span class="meta">MUN · £12.0m</span>
@@ -757,13 +717,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#DD0000;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DD0000"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Gibbs-White</b>
           <span class="meta">NFO · £8.0m</span>
@@ -772,13 +730,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#EF0107;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/><rect x="13" y="0" width="38" height="60" fill="#EF0107"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Rice</b>
           <span class="meta">ARS · £7.5m</span>
@@ -787,13 +743,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#6CABDD;--trim:#1C2C5B">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#6CABDD"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Anderson</b>
           <span class="meta">MCI · £6.5m</span>
@@ -802,13 +756,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#1D428A;--trim:#FFCD00">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Wilson</b>
           <span class="meta">LEE · £6.5m</span>
@@ -817,13 +769,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></div><div class="line line-fwd">
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#034694;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#034694"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>João Pedro</b>
           <span class="meta">CHE · £7.5m</span>
@@ -832,13 +782,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
-        <div class="shirt" style="--kit:#E30613;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#E30613"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#E30613"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#E30613"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Thiago</b>
           <span class="meta">BRE · £8.0m</span>
@@ -851,13 +799,11 @@ nav.tabs label:hover{color:var(--chalk)}
         substitution order</span></h3>
       <ol class="bench-list"><li class="gk-slot"><span class="ord gk">GK</span>
       <figure class="shirt-card small">
-        <div class="shirt" style="--kit:#132257;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Dubravka</b>
           <span class="meta">TOT · £4.0m</span>
@@ -866,13 +812,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></li><li><span class="ord">1</span>
       <figure class="shirt-card small">
-        <div class="shirt" style="--kit:#003399;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#003399"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Tarkowski</b>
           <span class="meta">EVE · £6.0m</span>
@@ -881,13 +825,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></li><li><span class="ord">2</span>
       <figure class="shirt-card small">
-        <div class="shirt" style="--kit:#DD0000;--trim:#FFFFFF">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DD0000"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>N.Williams</b>
           <span class="meta">NFO · £5.0m</span>
@@ -896,13 +838,11 @@ nav.tabs label:hover{color:var(--chalk)}
         </figcaption>
       </figure></li><li><span class="ord">3</span>
       <figure class="shirt-card small">
-        <div class="shirt" style="--kit:#DA291C;--trim:#FBE122">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          
-        </div>
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DA291C"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
         <figcaption>
           <b>Obi</b>
           <span class="meta">MUN · £4.5m</span>

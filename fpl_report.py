@@ -19,20 +19,51 @@ import html as _html
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-# Club colours, used for the shirt markers on the pitch.
-TEAM_COLOURS = {
-    "ARS": ("#EF0107", "#FFFFFF"), "AVL": ("#670E36", "#95BFE5"),
-    "BOU": ("#DA291C", "#000000"), "BRE": ("#E30613", "#FFFFFF"),
-    "BHA": ("#0057B8", "#FFCD00"), "CHE": ("#034694", "#FFFFFF"),
-    "COV": ("#78D0F3", "#1F1F1F"), "CRY": ("#1B458F", "#C4122E"),
-    "EVE": ("#003399", "#FFFFFF"), "FUL": ("#1A1A1A", "#FFFFFF"),
-    "HUL": ("#F5A12D", "#1F1F1F"), "IPS": ("#3A64A3", "#FFFFFF"),
-    "LEE": ("#1D428A", "#FFCD00"), "LIV": ("#C8102E", "#FFFFFF"),
-    "MCI": ("#6CABDD", "#1C2C5B"), "MUN": ("#DA291C", "#FBE122"),
-    "NEW": ("#241F20", "#FFFFFF"), "NFO": ("#DD0000", "#FFFFFF"),
-    "TOT": ("#132257", "#FFFFFF"), "SUN": ("#EB172B", "#FFFFFF"),
+# Club kits for the shirt markers. Each entry is
+# (primary, secondary, pattern), where pattern is one of:
+#   "solid"   - one colour
+#   "stripes" - vertical stripes alternating primary/secondary
+#   "sleeves" - primary body with contrasting sleeves
+# Home kits. Getting these wrong is immediately obvious to anyone who
+# watches football, so they are worth stating explicitly rather than
+# approximating with a single colour per club.
+KITS = {
+    "ARS": ("#EF0107", "#FFFFFF", "sleeves"),
+    "AVL": ("#670E36", "#95BFE5", "sleeves"),
+    "BOU": ("#DA291C", "#000000", "stripes"),
+    "BRE": ("#E30613", "#FFFFFF", "stripes"),
+    "BHA": ("#0057B8", "#FFFFFF", "stripes"),
+    "CHE": ("#034694", "#FFFFFF", "solid"),
+    "COV": ("#6BB7E8", "#FFFFFF", "solid"),
+    "CRY": ("#C4122E", "#1B458F", "stripes"),
+    "EVE": ("#003399", "#FFFFFF", "solid"),
+    "FUL": ("#FFFFFF", "#000000", "solid"),
+    "HUL": ("#F5A12D", "#000000", "stripes"),
+    "IPS": ("#3A64A3", "#FFFFFF", "sleeves"),
+    "LEE": ("#FFFFFF", "#1D428A", "solid"),
+    "LIV": ("#C8102E", "#FFFFFF", "solid"),
+    "MCI": ("#6CABDD", "#FFFFFF", "solid"),
+    "MUN": ("#DA291C", "#FFFFFF", "solid"),
+    "NEW": ("#241F20", "#FFFFFF", "stripes"),
+    "NFO": ("#DD0000", "#FFFFFF", "solid"),
+    "TOT": ("#FFFFFF", "#132257", "solid"),
+    "SUN": ("#EB172B", "#FFFFFF", "stripes"),
 }
-DEFAULT_COLOURS = ("#2A3A4A", "#FFFFFF")
+DEFAULT_KIT = ("#2A3A4A", "#FFFFFF", "solid")
+
+SHIRT_PATH = ("M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 "
+              "L56 12 L44 4 C40 10 24 10 20 4 Z")
+
+# Outline colour, so a white kit still reads against the green pitch.
+KIT_OUTLINE = "#0C1A12"
+
+# One shared clip path for every shirt - the silhouette is identical, and the
+# markup is reused across both tabs, so per-shirt ids would collide.
+SHIRT_CLIP_ID = "shirt-clip"
+SHIRT_DEFS = (f'<svg width="0" height="0" style="position:absolute" '
+              f'aria-hidden="true"><defs><clipPath id="{SHIRT_CLIP_ID}">'
+              f'<path d="{SHIRT_PATH}"/></clipPath></defs></svg>')
+
 
 POSITION_ORDER = {"GKP": 0, "DEF": 1, "MID": 2, "FWD": 3}
 
@@ -162,8 +193,30 @@ def e(text):
     return _html.escape(str(text), quote=True)
 
 
+def _kit_svg(team):
+    """Draws the kit: stripes, contrast sleeves or plain, clipped to a shirt."""
+    primary, secondary, pattern = KITS.get(team, DEFAULT_KIT)
+
+    if pattern == "stripes":
+        # Six stripes across the 64-wide viewBox.
+        body = "".join(
+            f'<rect x="{i * 10.7:.1f}" y="0" width="10.7" height="60" '
+            f'fill="{primary if i % 2 == 0 else secondary}"/>'
+            for i in range(6))
+    elif pattern == "sleeves":
+        body = (f'<rect x="0" y="0" width="64" height="60" fill="{secondary}"/>'
+                f'<rect x="13" y="0" width="38" height="60" fill="{primary}"/>')
+    else:
+        body = f'<rect x="0" y="0" width="64" height="60" fill="{primary}"/>'
+
+    return f"""<svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#{SHIRT_CLIP_ID})">{body}</g>
+            <path d="{SHIRT_PATH}" fill="none" stroke="{KIT_OUTLINE}"
+                  stroke-width="2.5"/>
+          </svg>"""
+
+
 def _shirt(player, size="normal"):
-    fill, detail = TEAM_COLOURS.get(player.team, DEFAULT_COLOURS)
     badge = ""
     if player.is_captain:
         badge = '<span class="armband" title="Captain">C</span>'
@@ -175,13 +228,7 @@ def _shirt(player, size="normal"):
 
     return f"""
       <figure class="shirt-card {size}">
-        <div class="shirt" style="--kit:{fill};--trim:{detail}">
-          <svg viewBox="0 0 64 60" aria-hidden="true">
-            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4
-                     C40 10 24 10 20 4 Z"/>
-          </svg>
-          {badge}
-        </div>
+        <div class="shirt">{_kit_svg(player.team)}{badge}</div>
         <figcaption>
           <b>{e(player.name)}</b>
           <span class="meta">{e(player.team)} · £{player.price:.1f}m</span>
@@ -394,8 +441,7 @@ h3 .sub{font-family:var(--body);text-transform:none;letter-spacing:0;
 @keyframes rise{from{opacity:0;transform:translateY(14px)}}
 .shirt{position:relative;width:52px;margin:0 auto 8px;filter:
   drop-shadow(0 6px 10px #0006)}
-.shirt svg{width:100%;display:block;fill:var(--kit);
-  stroke:var(--trim);stroke-width:2.5}
+.shirt svg{width:100%;display:block}
 .shirt-card.small{width:74px}
 .shirt-card.small .shirt{width:38px}
 .armband{position:absolute;right:-8px;top:-6px;width:24px;height:24px;
@@ -600,6 +646,7 @@ def render(report):
  captaincy.">
 <style>{CSS}</style>
 </head><body>
+{SHIRT_DEFS}
 <div class="wrap">
 
 <header class="mast">

@@ -694,7 +694,11 @@ NOTES
   own slot, since it can only replace the starting keeper and is not part of
   the outfield substitution priority
 - The formation string is derived from the XI, not passed in
-- Team colours live in TEAM_COLOURS; add promoted clubs there each season
+- Kits live in KITS as (primary, secondary, pattern) where pattern is
+  "solid", "stripes" or "sleeves". Stripes and contrast sleeves are drawn as
+  rects clipped to a shared shirt silhouette. Add promoted clubs each season
+  and check the pattern, not just the colour - a striped club rendered flat
+  is immediately obvious to anyone who watches football
 - Committed to a dark theme deliberately - it does not follow the viewer's
   light/dark preference
 - Mobile layout has media queries but has not been verified in a real
