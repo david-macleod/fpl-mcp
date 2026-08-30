@@ -572,6 +572,15 @@ directory under it that holds a .so, and sets FONTCONFIG_PATH, then passes that
 env to chromium.launch(). The directory is gitignored (~300MB) and is a no-op
 where the system packages exist.
 
+Fonts matter more than they look. The packaged etc/fonts/fonts.conf hardcodes
+/usr/share/fonts, absent here, so Chromium had no fonts at all: forms drew
+blank and, far less obviously, keyboard input into <input> fields inserted
+nothing (keydown fired, no beforeinput/input; Skia's font manager aborts
+first). The login form then posted username="" password="" and the site
+answered "invalid username and/or password" - which looked exactly like a
+wrong password. _fonts_conf() generates a fonts.conf with absolute paths and
+_browser_env() passes it as FONTCONFIG_FILE.
+
 This repo on Linux uses a venv: run everything with .venv/bin/python, not
 python3 (system Python is PEP 668 externally managed).
 

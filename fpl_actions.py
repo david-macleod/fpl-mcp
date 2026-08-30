@@ -78,10 +78,37 @@ def _browser_env():
         if any(".so" in f for f in files)
     })
     env["LD_LIBRARY_PATH"] = ":".join(lib_dirs + [env.get("LD_LIBRARY_PATH", "")]).rstrip(":")
-    fonts = os.path.join(CHROMIUM_LIBS_DIR, "etc", "fonts")
-    if os.path.isdir(fonts):
-        env["FONTCONFIG_PATH"] = fonts
+    env["FONTCONFIG_FILE"] = _fonts_conf()
     return env
+
+
+def _fonts_conf():
+    """Writes a fontconfig file pointing at the unpacked fonts.
+
+    The packaged ``etc/fonts/fonts.conf`` hardcodes ``/usr/share/fonts``,
+    which does not exist here, so Chromium would find no fonts at all: forms
+    render blank and, less obviously, typing into an input inserts nothing
+    (Skia's font manager aborts before the edit). One generated file with
+    absolute paths fixes both.
+
+    :return: Path to the generated ``fonts.conf``.
+    :rtype: str
+    """
+    base = os.path.dirname(CHROMIUM_LIBS_DIR)
+    path = os.path.join(base, "fonts.conf")
+    cache = os.path.join(base, "fontcache")
+    os.makedirs(cache, exist_ok=True)
+    with open(path, "w") as f:
+        f.write(
+            '<?xml version="1.0"?>\n<!DOCTYPE fontconfig SYSTEM "fonts.dtd">\n'
+            "<fontconfig>\n"
+            f"  <dir>{os.path.join(CHROMIUM_LIBS_DIR, 'usr', 'share', 'fonts')}</dir>\n"
+            f"  <cachedir>{cache}</cachedir>\n"
+            f'  <include ignore_missing="yes">'
+            f"{os.path.join(CHROMIUM_LIBS_DIR, 'etc', 'fonts', 'conf.d')}</include>\n"
+            "</fontconfig>\n"
+        )
+    return path
 
 # The Fantasy site's OAuth client. Its access token is kept in localStorage
 # under "oidc.user:<issuer>:<client id>".
