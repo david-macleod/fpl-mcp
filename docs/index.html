@@ -1,225 +1,865 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>H2H League - Cumulative H2H Points vs League Average</title>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #1a1a2e;
-            color: #e0e0e0;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #00ff88;
-            font-size: 1.6em;
-            margin-bottom: 5px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #888;
-            font-size: 0.9em;
-            margin-bottom: 20px;
-        }
-        #chart {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .standings {
-            max-width: 900px;
-            margin: 30px auto;
-            border-collapse: collapse;
-            width: 100%;
-        }
-        .standings th, .standings td {
-            padding: 8px 14px;
-            text-align: left;
-            border-bottom: 1px solid #333;
-        }
-        .standings th {
-            color: #00ff88;
-            font-size: 0.85em;
-            text-transform: uppercase;
-        }
-        .standings tr:hover {
-            background: #2a2a4e;
-        }
-        .color-dot {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        nav { text-align: center; margin-bottom: 20px; }
-        nav a { color: #00ff88; margin: 0 12px; text-decoration: none; font-size: 0.95em; }
-        nav a:hover { text-decoration: underline; }
-        nav a.active { border-bottom: 2px solid #00ff88; }
-    </style>
-</head>
-<body>
-    <nav>
-        <a href="index.html" class="active">H2H Points</a>
-        <a href="bench.html">Bench Points</a>
-        <a href="hits.html">Transfer Hits</a>
-    </nav>
-    <h1>H2H League — Cumulative H2H Points vs League Average</h1>
-    <div class="subtitle">Season 2025/26 · GW1–GW38 (Final) · 3 pts for a win, 1 for a draw · Each line shows cumulative H2H points minus the league average</div>
-    <div id="chart"></div>
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GW1 Report · Generational Talents</title>
+<meta name="description" content="Fantasy Premier League gameweek
+ 1 team report: transfers, chip decision, starting XI and
+ captaincy.">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --ink:#080D14; --ink-2:#0D141E; --panel:#111A26; --line:#1E2A3A;
+  --chalk:#E8EDF2; --mute:#7D8FA3; --lime:#C6F24E; --amber:#FFAE3B;
+  --red:#FF5C6E; --grass:#12301F; --grass-2:#164026;
+  --display:"Avenir Next Condensed","HelveticaNeue-CondensedBold",
+            "Arial Narrow",sans-serif;
+  --body:"Iowan Old Style","Charter","Palatino Linotype",Georgia,serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--ink);color:var(--chalk);font-family:var(--body);
+  line-height:1.6;font-size:16px;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%,#16283A 0%,transparent 60%),
+    repeating-linear-gradient(90deg,transparent 0 79px,#ffffff05 79px 80px);
+}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px 96px}
 
-    <table class="standings" id="standings"></table>
+/* masthead */
+header.mast{padding:72px 0 40px;border-bottom:2px solid var(--line);
+  position:relative}
+.kicker{font-family:var(--mono);font-size:11px;letter-spacing:.32em;
+  text-transform:uppercase;color:var(--lime);margin:0 0 18px}
+.mast h1{font-family:var(--display);font-weight:700;letter-spacing:-.02em;
+  font-size:clamp(44px,9vw,104px);line-height:.88;margin:0;
+  text-transform:uppercase}
+.mast h1 .gw{color:var(--lime)}
+.mast .sub{font-size:17px;color:var(--mute);margin:18px 0 0;max-width:52ch}
+.mast .big-n{position:absolute;top:40px;right:-8px;font-family:var(--display);
+  font-size:clamp(120px,22vw,260px);line-height:.8;color:#ffffff07;
+  font-weight:700;pointer-events:none;user-select:none}
 
-    <script>
-        // H2H points per gameweek (3=win, 1=draw, 0=loss) — full season GW1-38
-        const managers = [
-            { name: "Ribeiro (The Participation Me)", color: "#ff6384",
-              h2h: [3,3,3,3,3,3,3,3,0,3,3,0,3,0,3,0,3,3,3,0,0,0,3,3,0,0,0,0,0,1,3,3,3,3,0,0,0,3] },
-            { name: "Clough (Clough's Crushers)", color: "#36a2eb",
-              h2h: [0,3,3,3,0,0,3,3,0,3,0,3,0,3,0,3,3,0,3,3,0,3,3,3,0,0,3,3,3,3,3,3,3,0,0,3,0,3] },
-            { name: "MacLeod (Fellaini's 11½)", color: "#ffce56",
-              h2h: [3,0,3,0,3,3,0,0,3,0,3,0,3,3,3,3,3,0,0,0,0,3,0,3,3,3,0,0,0,1,3,3,0,3,3,0,0,0] },
-            { name: "Reed (Nothing Else Matheus)", color: "#4bc0c0",
-              h2h: [0,3,0,3,0,0,0,0,3,3,0,0,3,0,0,0,3,3,0,3,3,3,0,3,0,0,0,0,3,3,0,0,3,1,3,3,3,0] },
-            { name: "Claude-ai (Generational Talents)", color: "#00ff88",
-              h2h: [3,0,0,0,3,3,3,3,3,3,0,3,0,3,3,0,0,0,0,0,3,0,0,0,3,0,3,3,0,0,0,0,0,1,0,0,3,0] },
-            { name: "Farrington (The Full English)", color: "#ff9f40",
-              h2h: [3,0,0,3,3,0,0,0,3,0,3,3,0,0,3,0,0,3,3,3,0,0,3,0,0,3,3,0,0,0,0,3,0,0,3,3,0,3] },
-            { name: "Fernandes (Artekkers)", color: "#c792ea",
-              h2h: [0,3,3,0,0,0,0,3,0,0,3,0,0,3,0,3,0,3,3,0,3,0,0,0,3,3,3,3,3,3,0,0,3,3,3,0,3,0] },
-            { name: "Asmat (Botman Begins)", color: "#f78c6c",
-              h2h: [0,0,0,0,0,3,3,0,0,0,0,3,3,0,0,3,0,0,0,3,3,3,3,0,3,3,0,3,3,0,0,0,0,0,0,3,3,3] }
-        ];
+/* stat strip */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:1px;background:var(--line);border:1px solid var(--line);margin:0 0 8px}
+.stats div{background:var(--ink-2);padding:20px 18px}
+.stats dt{font-family:var(--mono);font-size:10px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--mute);margin:0 0 8px}
+.stats dd{margin:0;font-family:var(--display);font-size:32px;
+  letter-spacing:-.01em}
+.stats dd.lime{color:var(--lime)}
 
-        const numGW = managers[0].h2h.length;
-        const gws = Array.from({length: numGW}, (_, i) => i + 1);
+section{margin:64px 0 0}
+h2{font-family:var(--display);text-transform:uppercase;letter-spacing:.01em;
+  font-size:clamp(26px,4vw,40px);margin:0 0 24px;display:flex;
+  align-items:baseline;gap:16px;border-bottom:1px solid var(--line);
+  padding-bottom:14px}
+h2 .n{font-family:var(--mono);font-size:12px;color:var(--lime);
+  letter-spacing:.2em}
+h3{font-family:var(--display);text-transform:uppercase;letter-spacing:.06em;
+  font-size:18px;margin:0 0 14px;color:var(--chalk)}
+h3 .sub{font-family:var(--body);text-transform:none;letter-spacing:0;
+  color:var(--mute);font-size:13px;font-weight:400}
 
-        // Compute actual league average per GW (accounts for draws)
-        const gwTotals = gws.map((_, i) => managers.reduce((s, m) => s + m.h2h[i], 0));
-        const leagueAvgCumulative = [];
-        let avgSum = 0;
-        for (let i = 0; i < numGW; i++) {
-            avgSum += gwTotals[i] / managers.length;
-            leagueAvgCumulative.push(avgSum);
-        }
+/* pitch */
+.formation{font-family:var(--mono);color:var(--lime);font-size:13px;
+  letter-spacing:.2em;margin:0 0 18px}
+.pitch{position:relative;border:1px solid var(--line);border-radius:4px;
+  padding:32px 16px;display:flex;flex-direction:column;gap:26px;
+  overflow:hidden}
+.turf{position:absolute;inset:0;z-index:0;
+  background:
+    linear-gradient(180deg,var(--grass-2),var(--grass)),
+    repeating-linear-gradient(180deg,#ffffff08 0 56px,transparent 56px 112px);}
+.turf::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;
+  background:#ffffff22}
+.turf::after{content:"";position:absolute;left:50%;top:50%;width:132px;
+  height:132px;border:1px solid #ffffff22;border-radius:50%;
+  transform:translate(-50%,-50%)}
+.line{position:relative;z-index:1;display:flex;justify-content:center;
+  gap:clamp(6px,2.4vw,30px);flex-wrap:wrap}
 
-        // Build traces
-        const traces = managers.map(m => {
-            const cumulative = [];
-            let sum = 0;
-            for (let i = 0; i < numGW; i++) {
-                sum += m.h2h[i];
-                cumulative.push(sum);
-            }
-            const relativeToAvg = cumulative.map((c, i) => c - leagueAvgCumulative[i]);
+.shirt-card{margin:0;width:92px;text-align:center;
+  animation:rise .5s cubic-bezier(.2,.7,.3,1) backwards}
+.line-gkp .shirt-card{animation-delay:.05s}
+.line-def .shirt-card{animation-delay:.12s}
+.line-mid .shirt-card{animation-delay:.19s}
+.line-fwd .shirt-card{animation-delay:.26s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.shirt{position:relative;width:52px;margin:0 auto 8px;filter:
+  drop-shadow(0 6px 10px #0006)}
+.shirt svg{width:100%;display:block}
+.shirt-card.small{width:74px}
+.shirt-card.small .shirt{width:38px}
+.armband{position:absolute;right:-8px;top:-6px;width:24px;height:24px;
+  border-radius:50%;background:var(--amber);color:#1A1200;font-family:var(--mono);
+  font-size:12px;font-weight:700;display:grid;place-items:center;
+  border:2px solid var(--ink)}
+.armband.vice{background:var(--chalk);color:#10151C}
+figcaption b{display:block;font-family:var(--display);font-size:15px;
+  letter-spacing:.02em;line-height:1.15}
+figcaption .meta{display:block;font-family:var(--mono);font-size:10px;
+  color:#B9C6D4;margin-top:3px}
+figcaption .opp{display:block;font-family:var(--mono);font-size:10px;
+  color:#8FA0B2;margin-top:2px}
+.d{display:inline-block;width:7px;height:7px;border-radius:2px;
+  margin-right:5px;vertical-align:middle}
+.d2{background:#3FCF6A}.d3{background:#C9C13F}.d4{background:#E08A3C}
+.d5{background:var(--red)}
 
-            return {
-                x: gws,
-                y: relativeToAvg,
-                mode: 'lines+markers',
-                name: m.name,
-                line: { color: m.color, width: 2.5 },
-                marker: { size: 4 },
-                customdata: cumulative.map((c, i) => [c, m.h2h[i] === 3 ? 'W' : (m.h2h[i] === 1 ? 'D' : 'L')]),
-                hovertemplate: '<b>%{fullData.name}</b><br>GW%{x}: %{customdata[1]}<br>Cumulative: %{customdata[0]} pts<br>vs avg: %{y:+.1f}<extra></extra>'
-            };
-        });
+/* bench */
+.bench{margin-top:34px}
+.bench-list{list-style:none;margin:0;padding:0;display:flex;
+  gap:clamp(8px,2vw,24px);flex-wrap:wrap}
+.bench-list li{display:flex;align-items:flex-start;gap:8px;
+  background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:14px 16px 12px}
+.ord{font-family:var(--mono);font-size:11px;color:var(--lime);
+  border:1px solid var(--line);border-radius:3px;padding:2px 6px}
+.ord.gk{color:var(--amber);border-color:#3A2E18}
+.bench-list .gk-slot{border-color:#3A2E18;margin-right:6px}
 
-        // Zero line
-        traces.push({
-            x: gws,
-            y: Array(numGW).fill(0),
-            mode: 'lines',
-            name: 'League Average',
-            line: { color: '#555', width: 1, dash: 'dash' },
-            hoverinfo: 'skip',
-            showlegend: true
-        });
+/* transfers */
+table{width:100%;border-collapse:collapse;font-size:15px}
+.transfers th{font-family:var(--mono);font-size:10px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--mute);text-align:left;
+  padding:0 14px 12px;font-weight:400}
+.transfers td{padding:14px;border-top:1px solid var(--line);
+  vertical-align:middle}
+.transfers b{font-family:var(--display);font-size:17px;letter-spacing:.02em;
+  display:block}
+.transfers span{font-family:var(--mono);font-size:10px;color:var(--mute)}
+.transfers .out b{color:var(--red)}
+.transfers .in b{color:var(--lime)}
+.transfers .arrow{color:var(--mute);font-size:20px;width:34px;
+  text-align:center}
+.transfers .why{color:var(--mute);font-size:14px;max-width:34ch}
 
-        const layout = {
-            paper_bgcolor: '#1a1a2e',
-            plot_bgcolor: '#1a1a2e',
-            font: { color: '#e0e0e0', family: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif' },
-            xaxis: {
-                title: 'Gameweek',
-                gridcolor: '#2a2a4e',
-                dtick: 1,
-                range: [0.5, numGW + 0.5]
-            },
-            yaxis: {
-                title: 'H2H Points vs League Average',
-                gridcolor: '#2a2a4e',
-                dtick: 3,
-                zeroline: true,
-                zerolinecolor: '#555',
-                zerolinewidth: 1
-            },
-            legend: {
-                orientation: 'h',
-                y: -0.15,
-                x: 0.5,
-                xanchor: 'center',
-                font: { size: 11 }
-            },
-            margin: { t: 20, b: 100, l: 60, r: 20 },
-            hovermode: 'x unified'
-        };
+/* chips */
+.decision{font-size:18px;border-left:3px solid var(--lime);padding-left:18px;
+  margin:0 0 28px;max-width:70ch}
+.chip-halves{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:28px}
+.chip-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:14px 16px}
+.chip b{font-family:var(--display);font-size:15px;letter-spacing:.04em;
+  text-transform:uppercase;display:block}
+.chip .status{font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+  display:block;margin-top:6px}
+.chip.available{border-left:3px solid var(--lime)}
+.chip.available .status{color:var(--lime)}
+.chip.used{opacity:.5;border-left:3px solid var(--mute)}
+.chip.used .status{color:var(--mute)}
+.chip.locked{border-left:3px solid var(--amber)}
+.chip.locked .status{color:var(--amber)}
+.chip em{display:block;font-style:normal;font-size:11px;color:var(--mute);
+  margin-top:6px;line-height:1.4}
 
-        Plotly.newPlot('chart', traces, layout, {
-            responsive: true,
-            displayModeBar: false
-        });
+/* captain + notes */
+.captains{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:20px;margin-bottom:26px}
+.cap-card{background:var(--panel);border:1px solid var(--line);
+  border-top:3px solid var(--amber);border-radius:4px;padding:22px 24px}
+.cap-card.vice{border-top-color:var(--chalk)}
+.cap-card .role{font-family:var(--mono);font-size:10px;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--amber)}
+.cap-card.vice .role{color:var(--mute)}
+.cap-card .who{font-family:var(--display);font-size:34px;line-height:1.05;
+  margin:10px 0 4px;text-transform:uppercase}
+.cap-card .fx{font-family:var(--mono);font-size:11px;color:var(--mute)}
 
-        // Build standings table
-        const standingsData = managers.map(m => {
-            const total = m.h2h.reduce((a, b) => a + b, 0);
-            const wins = m.h2h.filter(x => x === 3).length;
-            const draws = m.h2h.filter(x => x === 1).length;
-            const losses = m.h2h.filter(x => x === 0).length;
-            let maxStreak = 0, streak = 0;
-            for (const r of m.h2h) {
-                if (r === 3) { streak++; maxStreak = Math.max(maxStreak, streak); }
-                else streak = 0;
-            }
-            let maxLStreak = 0, lstreak = 0;
-            for (const r of m.h2h) {
-                if (r === 0) { lstreak++; maxLStreak = Math.max(maxLStreak, lstreak); }
-                else lstreak = 0;
-            }
-            const form = m.h2h.slice(-5).map(x => x === 3 ? 'W' : (x === 1 ? 'D' : 'L')).join('');
-            return { ...m, total, wins, draws, losses, maxStreak, maxLStreak, form };
-        }).sort((a, b) => b.total - a.total);
+.note{background:var(--ink-2);border:1px solid var(--line);border-radius:4px;
+  padding:22px 26px;margin:0 0 16px}
+.note p{margin:0 0 12px;color:#C3CEDA}.note p:last-child{margin:0}
+.note.warn{border-left:3px solid var(--amber)}
 
-        const overallAvg = leagueAvgCumulative[numGW - 1];
+.caveats{margin:0;padding:0 0 0 22px;color:#C3CEDA;max-width:76ch}
+.caveats li{margin:0 0 12px}
 
-        let tableHTML = `
-            <tr><th></th><th>Manager</th><th>H2H Pts</th><th>W-D-L</th><th>vs Avg</th><th>Best Streak</th><th>Worst Streak</th><th>Last 5</th></tr>
-        `;
+footer{margin-top:72px;padding-top:22px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:11px;color:var(--mute);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
-        for (const m of standingsData) {
-            const diff = m.total - overallAvg;
-            const formHTML = m.form.split('').map(c => {
-                if (c === 'W') return '<span style="color:#00ff88">W</span>';
-                if (c === 'D') return '<span style="color:#ffce56">D</span>';
-                return '<span style="color:#ff6384">L</span>';
-            }).join('');
-            tableHTML += `<tr>
-                <td><span class="color-dot" style="background:${m.color}"></span></td>
-                <td>${m.name}</td>
-                <td>${m.total}</td>
-                <td>${m.wins}W-${m.draws}D-${m.losses}L</td>
-                <td style="color:${diff >= 0 ? '#00ff88' : '#ff6384'}">${diff >= 0 ? '+' : ''}${diff.toFixed(1)}</td>
-                <td style="color:#00ff88">${m.maxStreak}W</td>
-                <td style="color:#ff6384">${m.maxLStreak}L</td>
-                <td style="font-family:monospace;letter-spacing:2px">${formHTML}</td>
-            </tr>`;
-        }
-        document.getElementById('standings').innerHTML = tableHTML;
-    </script>
-</body>
-</html>
+@media (max-width:640px){
+  .wrap{padding:0 16px 64px}
+  .shirt-card{width:72px}.shirt{width:42px}
+  .transfers .why{display:none}
+  .chip-grid{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* tabs (CSS only - no script) */
+.tabsw input{position:absolute;opacity:0;pointer-events:none}
+nav.tabs{display:flex;gap:6px;margin:26px 0 0;border-bottom:2px solid var(--line)}
+nav.tabs label{font-family:var(--display);text-transform:uppercase;
+  letter-spacing:.08em;font-size:14px;padding:11px 20px;cursor:pointer;
+  color:var(--mute);border:1px solid transparent;border-bottom:none;
+  border-radius:4px 4px 0 0;user-select:none}
+nav.tabs label:hover{color:var(--chalk)}
+.panel{display:none}
+#t-report:checked~nav.tabs label[for=t-report],
+#t-sheet:checked~nav.tabs label[for=t-sheet]{
+  color:var(--ink);background:var(--lime);border-color:var(--lime)}
+#t-report:checked~.p-report{display:block}
+#t-sheet:checked~.p-sheet{display:block}
+
+/* compressed team sheet - built to fit one screenshot */
+.sheet{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);
+  gap:20px;margin:20px 0 0;align-items:start}
+.sheet h3{margin:0 0 10px;font-size:15px;letter-spacing:.12em}
+.sheet .card{background:var(--ink-2);border:1px solid var(--line);
+  border-radius:4px;padding:16px 18px}
+.sheet .mini .pitch{padding:14px 6px;gap:11px}
+.sheet .mini .shirt-card{width:62px}
+.sheet .mini .shirt{width:34px;margin-bottom:5px}
+.sheet .mini figcaption b{font-size:12px}
+.sheet .mini figcaption .meta,.sheet .mini figcaption .opp{font-size:9px}
+.sheet .mini .armband{width:18px;height:18px;font-size:9px;right:-6px;top:-4px}
+.sheet .mini .bench{margin-top:14px}
+.sheet .mini .bench-list li{padding:8px 10px 6px}
+.sheet .mini .bench-list{gap:8px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
+  border:1px solid var(--line);margin:0 0 12px}
+.facts div{background:var(--ink-2);padding:8px 12px}
+.facts dt{font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--mute);margin:0 0 4px}
+.facts dd{margin:0;font-family:var(--display);font-size:19px;line-height:1.1}
+.facts dd.lime{color:var(--lime)}
+.verdict{background:var(--ink-2);border:1px solid var(--line);
+  border-left:3px solid var(--amber);border-radius:4px;padding:14px 16px}
+.verdict .who{font-family:var(--mono);font-size:20px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--amber);margin:0 0 12px;line-height:1.25}
+.verdict p{margin:0 0 8px;font-size:13.2px;line-height:1.5;color:#D2DCE6}
+.verdict p:last-of-type{margin:0}
+@media (max-width:900px){.sheet{grid-template-columns:1fr}}
+</style>
+</head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="shirt-clip"><path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z"/></clipPath></defs></svg>
+<div class="wrap">
+
+<header class="mast">
+  <div class="big-n" aria-hidden="true">01</div>
+  <p class="kicker">Gameweek 1 · Team Report</p>
+  <h1>Generational Talents<br><span class="gw">GW1</span></h1>
+  <p class="sub">Deadline Fri 21 Aug, 18:30 UK. Entry 3593814.
+     Decisions and the reasoning behind them.</p>
+</header>
+
+<div class="tabsw">
+  <input type="radio" name="tabs" id="t-report" checked>
+  <input type="radio" name="tabs" id="t-sheet">
+  <nav class="tabs">
+    <label for="t-report" data-tab="report">Full report</label>
+    <label for="t-sheet" data-tab="sheet">Team sheet</label>
+  </nav>
+
+  <div class="panel p-report">
+    
+      <dl class="stats">
+        <div><dt>Squad value</dt><dd>£100.0m</dd></div>
+        <div><dt>In the bank</dt><dd>£0.0m</dd></div>
+        <div><dt>Transfers</dt><dd class="lime">Unlimited</dd></div>
+        <div><dt>Projected XI</dt><dd>66<span
+          style="font-size:15px;color:var(--mute)"> pts</span></dd></div>
+      </dl>
+
+    <section id="xi">
+      <h2><span class="n">01</span> Starting XI</h2>
+      <p class="formation">FORMATION 3-5-2</p>
+      <div class="pitch"><div class="turf"></div><div class="line line-gkp">
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Roefs</b>
+          <span class="meta">SUN · £5.0m</span>
+          <span class="opp"><i class="d d2"></i>IPS (A)</span>
+        </figcaption>
+      </figure></div><div class="line line-def">
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/><rect x="13" y="0" width="38" height="60" fill="#EF0107"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg><span class="armband vice" title="Vice-captain">V</span></div>
+        <figcaption>
+          <b>Gabriel</b>
+          <span class="meta">ARS · £8.0m</span>
+          <span class="opp"><i class="d d2"></i>COV (H)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Mukiele</b>
+          <span class="meta">SUN · £5.5m</span>
+          <span class="opp"><i class="d d2"></i>IPS (A)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#6CABDD"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Guéhi</b>
+          <span class="meta">MCI · £6.0m</span>
+          <span class="opp"><i class="d d3"></i>BOU (H)</span>
+        </figcaption>
+      </figure></div><div class="line line-mid">
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DA291C"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg><span class="armband" title="Captain">C</span></div>
+        <figcaption>
+          <b>B.Fernandes</b>
+          <span class="meta">MUN · £12.0m</span>
+          <span class="opp"><i class="d d2"></i>HUL (A)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DD0000"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Gibbs-White</b>
+          <span class="meta">NFO · £8.0m</span>
+          <span class="opp"><i class="d d2"></i>LEE (H)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/><rect x="13" y="0" width="38" height="60" fill="#EF0107"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Rice</b>
+          <span class="meta">ARS · £7.5m</span>
+          <span class="opp"><i class="d d2"></i>COV (H)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#6CABDD"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Anderson</b>
+          <span class="meta">MCI · £6.5m</span>
+          <span class="opp"><i class="d d3"></i>BOU (H)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Wilson</b>
+          <span class="meta">LEE · £6.5m</span>
+          <span class="opp"><i class="d d3"></i>NFO (A)</span>
+        </figcaption>
+      </figure></div><div class="line line-fwd">
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#034694"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>João Pedro</b>
+          <span class="meta">CHE · £7.5m</span>
+          <span class="opp"><i class="d d3"></i>FUL (A)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#E30613"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#E30613"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#E30613"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Thiago</b>
+          <span class="meta">BRE · £8.0m</span>
+          <span class="opp"><i class="d d3"></i>TOT (H)</span>
+        </figcaption>
+      </figure></div></div>
+      
+    <section class="bench">
+      <h3>Bench <span class="sub">reserve keeper, then outfield
+        substitution order</span></h3>
+      <ol class="bench-list"><li class="gk-slot"><span class="ord gk">GK</span>
+      <figure class="shirt-card small">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Dubravka</b>
+          <span class="meta">TOT · £4.0m</span>
+          <span class="opp"><i class="d d3"></i>BRE (A)</span>
+        </figcaption>
+      </figure></li><li><span class="ord">1</span>
+      <figure class="shirt-card small">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#003399"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Tarkowski</b>
+          <span class="meta">EVE · £6.0m</span>
+          <span class="opp"><i class="d d3"></i>CRY (H)</span>
+        </figcaption>
+      </figure></li><li><span class="ord">2</span>
+      <figure class="shirt-card small">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DD0000"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>N.Williams</b>
+          <span class="meta">NFO · £5.0m</span>
+          <span class="opp"><i class="d d2"></i>LEE (H)</span>
+        </figcaption>
+      </figure></li><li><span class="ord">3</span>
+      <figure class="shirt-card small">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DA291C"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Obi</b>
+          <span class="meta">MUN · £4.5m</span>
+          <span class="opp"><i class="d d2"></i>HUL (A)</span>
+        </figcaption>
+      </figure></li></ol>
+    </section>
+    </section>
+
+    
+    <section id="transfers">
+      <h2><span class="n">02</span> Transfers</h2>
+      <table class="transfers">
+        <thead><tr><th>Out</th><th></th><th>In</th><th>Rationale</th></tr>
+        </thead>
+        <tbody>
+      <tr>
+        <td class="out"><b>A.Becker</b><span>LIV ·
+            £5.5m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Roefs</b><span>SUN ·
+            £5.0m</span></td>
+        <td class="why">Sunderland travel to promoted Ipswich; frees £0.5m.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Forster</b><span>BOU ·
+            £4.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Dubravka</b><span>TOT ·
+            £4.0m</span></td>
+        <td class="why">Reserve keeper only.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>O&#x27;Reilly</b><span>MCI ·
+            £6.5m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Gabriel</b><span>ARS ·
+            £8.0m</span></td>
+        <td class="why">209 pts from 30 starts last season - 18 clean sheets, 277 defensive contributions.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Senesi</b><span>TOT ·
+            £6.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Mukiele</b><span>SUN ·
+            £5.5m</span></td>
+        <td class="why">Starts every week and Sunderland open at Ipswich.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Lacroix</b><span>CHE ·
+            £6.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Guéhi</b><span>MCI ·
+            £6.0m</span></td>
+        <td class="why">Moves into the City defence, who face Bournemouth at home.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Khusanov</b><span>MCI ·
+            £5.5m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>N.Williams</b><span>NFO ·
+            £5.0m</span></td>
+        <td class="why">Forest host Leeds; keeps City exposure at two.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Wirtz</b><span>LIV ·
+            £7.5m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>B.Fernandes</b><span>MUN ·
+            £12.0m</span></td>
+        <td class="why">235 pts, 24 assists and penalties, into the best GW1-5 run in the league.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Doku</b><span>MCI ·
+            £7.5m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Gibbs-White</b><span>NFO ·
+            £8.0m</span></td>
+        <td class="why">Doku is a 75% doubt with a calf injury. 15 goals for Gibbs-White last season.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Rogers</b><span>CHE ·
+            £7.5m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Anderson</b><span>MCI ·
+            £6.5m</span></td>
+        <td class="why">City midfield at home to Bournemouth, £1.0m cheaper.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Gakpo</b><span>LIV ·
+            £7.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Wilson</b><span>LEE ·
+            £6.5m</span></td>
+        <td class="why">Leeds hold a 2.80 average difficulty across the opening five.</td>
+      </tr>
+      <tr>
+        <td class="out"><b>Watkins</b><span>AVL ·
+            £8.0m</span></td>
+        <td class="arrow" aria-hidden="true">&rarr;</td>
+        <td class="in"><b>Obi</b><span>MUN ·
+            £4.5m</span></td>
+        <td class="why">Releases £3.5m into Bruno Fernandes. Fourth forward is a bench slot.</td>
+      </tr></tbody>
+      </table>
+    </section>
+    
+    <section id="chips">
+      <h2><span class="n">03</span> Chips</h2>
+      <p class="decision">No chip in GW1. Wildcard and Free Hit are locked until GW2, and neither chip that is playable earns its keep this week.</p>
+      <div class="chip-halves"><div class="chip-half"><h3>GW1-19</h3><div class="chip-grid">
+          <div class="chip locked">
+            <b>Wildcard</b>
+            <span class="status">LOCKED</span>
+            <em>Not playable until GW2</em>
+          </div>
+          <div class="chip locked">
+            <b>Free Hit</b>
+            <span class="status">LOCKED</span>
+            <em>Not playable until GW2</em>
+          </div>
+          <div class="chip available">
+            <b>Bench Boost</b>
+            <span class="status">AVAILABLE</span>
+            <em>Held</em>
+          </div>
+          <div class="chip available">
+            <b>Triple Captain</b>
+            <span class="status">AVAILABLE</span>
+            <em>Held</em>
+          </div></div></div><div class="chip-half"><h3>GW20-38</h3><div class="chip-grid">
+          <div class="chip available">
+            <b>Wildcard</b>
+            <span class="status">AVAILABLE</span>
+            
+          </div>
+          <div class="chip available">
+            <b>Free Hit</b>
+            <span class="status">AVAILABLE</span>
+            
+          </div>
+          <div class="chip available">
+            <b>Bench Boost</b>
+            <span class="status">AVAILABLE</span>
+            
+          </div>
+          <div class="chip available">
+            <b>Triple Captain</b>
+            <span class="status">AVAILABLE</span>
+            
+          </div></div></div></div>
+    </section>
+    
+        <section id="captain">
+          <h2><span class="n">04</span> Captaincy</h2>
+          <div class="captains">
+              <div class="cap-card">
+                <div class="role">Captain</div>
+                <div class="who">B.Fernandes</div>
+                <div class="fx">MUN · HUL (A) ·
+                  proj 7.4 pts</div>
+              </div>
+              <div class="cap-card vice">
+                <div class="role">Vice-captain</div>
+                <div class="who">Gabriel</div>
+                <div class="fx">ARS · COV (H) ·
+                  proj 8.7 pts</div>
+              </div></div>
+          <div class="note"><p>Bruno Fernandes takes the armband away from Gabriel, who the model actually rates higher on mean points (8.7 to 7.4). Captaincy is chosen on ceiling rather than mean: Gabriel&#x27;s realistic maximum is around 15 points, while Fernandes has goals, assists and penalties against a promoted side away from home.</p><p>Gabriel keeps the vice-captaincy, so a Fernandes no-show still falls to the highest projected player in the team.</p></div>
+        </section>
+
+    <section id="reasoning"><h2><span class="n">06</span> Decision process</h2><div class="note default"><h3>Eleven transfers that cost nothing</h3><p>The API reported transfer status `unlimited` with a null limit: before the first deadline every transfer is free, so the default squad was rebuilt outright rather than nursed. Spend lands on £100.0m exactly with £0.0m in the bank.</p><p>Transfers must be position-matched, so the rebuild runs as eleven like-for-like swaps: both keepers, four defenders, four midfielders and one forward. Tarkowski, Rice, Thiago and João Pedro were kept.</p></div><div class="note default"><h3>Why the fixture horizon changed the squad</h3><p>A first pass built for Gameweek 1 alone tripled up on Arsenal. Extending the view to Gameweeks 1-5 killed that idea: Arsenal hold the worst run of any strong side at 3.20 average difficulty - Coventry at home, then Villa away, Chelsea at home, Sunderland away and Brighton away. A squad built on them scores well once and then needs -4 hits to repair.</p><p>The best runs belong to Liverpool at 2.60, then Manchester City, Manchester United and Leeds at 2.80. No club now contributes more than two players, so the squad can absorb a bad fixture without forced surgery.</p></div><div class="note warn"><h3>Fading a 69% owned forward</h3><p>Haaland was left out. On projected points the two builds are level, so the tiebreak is structure: £15.5m on one player forces cheap filler elsewhere, and the Haaland build concentrated Arsenal assets into that poor run. Bruno Fernandes costs £3.5m less and carries the higher Gameweek 2-5 projection of the two.</p><p>The risk is stated plainly rather than buried. Haaland is owned by 69.4% of managers and captained by many of them. If he returns against Bournemouth this squad loses ground to most of the field in week one. That is a rank cost accepted in exchange for a points structure that holds for five weeks.</p></div></section>
+
+    
+    <section id="caveats">
+      <h2><span class="n">05</span> What this model cannot see</h2>
+      <ul class="caveats"><li>Projections are last season&#x27;s points-per-start, scaled by start reliability, fixture difficulty and home advantage. No expected-goals modelling and no minutes projection.</li><li>Eight candidate squads spanned only 71.9 to 75.0 projected points. That gap sits inside the model&#x27;s error, so this is a good answer rather than a provably optimal one.</li><li>Club-changers carry rates earned elsewhere. Guéhi&#x27;s 179 points came at Crystal Palace and Semenyo&#x27;s 202 at Bournemouth; the assumption that output transfers is the one that most often breaks.</li><li>Team news for the Saturday fixtures lands after the deadline. Line-ups are unknown at the point these decisions were locked in.</li></ul>
+    </section>
+  </div>
+
+  <div class="panel p-sheet">
+      <div class="sheet">
+        <div>
+          <h3>Generational Talents · 3-5-2</h3>
+          <div class="mini"><div class="pitch"><div class="turf"></div><div class="line line-gkp">
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Roefs</b>
+          <span class="meta">SUN · £5.0m</span>
+          <span class="opp"><i class="d d2"></i>IPS (A)</span>
+        </figcaption>
+      </figure></div><div class="line line-def">
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/><rect x="13" y="0" width="38" height="60" fill="#EF0107"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg><span class="armband vice" title="Vice-captain">V</span></div>
+        <figcaption>
+          <b>Gabriel</b>
+          <span class="meta">ARS · £8.0m</span>
+          <span class="opp"><i class="d d2"></i>COV (H)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#EB172B"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Mukiele</b>
+          <span class="meta">SUN · £5.5m</span>
+          <span class="opp"><i class="d d2"></i>IPS (A)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#6CABDD"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Guéhi</b>
+          <span class="meta">MCI · £6.0m</span>
+          <span class="opp"><i class="d d3"></i>BOU (H)</span>
+        </figcaption>
+      </figure></div><div class="line line-mid">
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DA291C"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg><span class="armband" title="Captain">C</span></div>
+        <figcaption>
+          <b>B.Fernandes</b>
+          <span class="meta">MUN · £12.0m</span>
+          <span class="opp"><i class="d d2"></i>HUL (A)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DD0000"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Gibbs-White</b>
+          <span class="meta">NFO · £8.0m</span>
+          <span class="opp"><i class="d d2"></i>LEE (H)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/><rect x="13" y="0" width="38" height="60" fill="#EF0107"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Rice</b>
+          <span class="meta">ARS · £7.5m</span>
+          <span class="opp"><i class="d d2"></i>COV (H)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#6CABDD"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Anderson</b>
+          <span class="meta">MCI · £6.5m</span>
+          <span class="opp"><i class="d d3"></i>BOU (H)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Wilson</b>
+          <span class="meta">LEE · £6.5m</span>
+          <span class="opp"><i class="d d3"></i>NFO (A)</span>
+        </figcaption>
+      </figure></div><div class="line line-fwd">
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#034694"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>João Pedro</b>
+          <span class="meta">CHE · £7.5m</span>
+          <span class="opp"><i class="d d3"></i>FUL (A)</span>
+        </figcaption>
+      </figure>
+      <figure class="shirt-card normal">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0.0" y="0" width="10.7" height="60" fill="#E30613"/><rect x="10.7" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="21.4" y="0" width="10.7" height="60" fill="#E30613"/><rect x="32.1" y="0" width="10.7" height="60" fill="#FFFFFF"/><rect x="42.8" y="0" width="10.7" height="60" fill="#E30613"/><rect x="53.5" y="0" width="10.7" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Thiago</b>
+          <span class="meta">BRE · £8.0m</span>
+          <span class="opp"><i class="d d3"></i>TOT (H)</span>
+        </figcaption>
+      </figure></div></div>
+    <section class="bench">
+      <h3>Bench <span class="sub">reserve keeper, then outfield
+        substitution order</span></h3>
+      <ol class="bench-list"><li class="gk-slot"><span class="ord gk">GK</span>
+      <figure class="shirt-card small">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#FFFFFF"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Dubravka</b>
+          <span class="meta">TOT · £4.0m</span>
+          <span class="opp"><i class="d d3"></i>BRE (A)</span>
+        </figcaption>
+      </figure></li><li><span class="ord">1</span>
+      <figure class="shirt-card small">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#003399"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Tarkowski</b>
+          <span class="meta">EVE · £6.0m</span>
+          <span class="opp"><i class="d d3"></i>CRY (H)</span>
+        </figcaption>
+      </figure></li><li><span class="ord">2</span>
+      <figure class="shirt-card small">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DD0000"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>N.Williams</b>
+          <span class="meta">NFO · £5.0m</span>
+          <span class="opp"><i class="d d2"></i>LEE (H)</span>
+        </figcaption>
+      </figure></li><li><span class="ord">3</span>
+      <figure class="shirt-card small">
+        <div class="shirt"><svg viewBox="0 0 64 60" aria-hidden="true">
+            <g clip-path="url(#shirt-clip)"><rect x="0" y="0" width="64" height="60" fill="#DA291C"/></g>
+            <path d="M20 4 L8 12 L2 26 L12 32 L14 56 L50 56 L52 32 L62 26 L56 12 L44 4 C40 10 24 10 20 4 Z" fill="none" stroke="#0C1A12"
+                  stroke-width="2.5"/>
+          </svg></div>
+        <figcaption>
+          <b>Obi</b>
+          <span class="meta">MUN · £4.5m</span>
+          <span class="opp"><i class="d d2"></i>HUL (A)</span>
+        </figcaption>
+      </figure></li></ol>
+    </section></div>
+        </div>
+        <div>
+          <h3>The verdict</h3>
+          
+      <dl class="facts">
+        <div><dt>Captain</dt><dd class="lime">B.Fernandes</dd></div>
+        <div><dt>Vice</dt><dd>Gabriel</dd></div>
+        <div><dt>Chip played</dt><dd>None</dd></div>
+        <div><dt>Transfers</dt><dd>11 · Unlimited</dd></div>
+        <div><dt>Squad value</dt><dd>£100.0m</dd></div>
+        <div><dt>Projected XI</dt><dd>66 pts</dd></div>
+      </dl>
+          
+        <div class="verdict">
+          <p class="who">Guest manager: Danny Dyer</p>
+          <p>Right, listen to me. Eleven transfers and it ain&#x27;t cost us a bean. Before that first deadline the game lets you swap the lot for nothing, so I&#x27;ve gutted it. The squad they handed us was a shambles, mate — no proper striker and twenty-two and a half million sat on three geezers who&#x27;ve all changed clubs over the summer. Do me a favour.</p><p>Now here&#x27;s where it gets a bit naughty. Haaland. Sixty-nine percent of the country&#x27;s got him. I&#x27;ve left him out. I know. I know. But listen. I looked at the next five weeks and Arsenal have got a run like a punch in the throat — Coventry at home, lovely, then Villa away, Chelsea, Sunderland, Brighton. Load up on that lot and you&#x27;re taking minus-four hits by week two like a mug.</p><p>So the money&#x27;s gone on Bruno Fernandes instead. Twelve mill, takes the pens, twenty-four assists last season, and United have got Hull away then Ipswich at home. That ain&#x27;t a fixture list, that&#x27;s a welcome mat. He&#x27;s got the armband.</p><p>Chips? Not a one. Wildcard and Free Hit are locked till next week anyway, Bench Boost on this bench would be like triple-captaining your nan, and I ain&#x27;t chucking the Triple Captain at a week where nobody&#x27;s kicked a ball yet.</p><p>If Haaland goes and bangs in a hat-trick tonight I&#x27;ll be sick as a dog and you can all have a go at me. But the squad&#x27;s sorted for five weeks and no club&#x27;s got more than two players in it. Job done. Lovely.</p>
+        </div>
+        </div>
+      </div></div>
+</div>
+
+<script>
+(function(){
+  var map={sheet:'t-sheet',report:'t-report'};
+  function apply(){
+    var id=map[(location.hash||'').replace('#','')];
+    if(id){var el=document.getElementById(id); if(el) el.checked=true;}
+  }
+  apply();
+  window.addEventListener('hashchange',apply);
+  document.querySelectorAll('nav.tabs label').forEach(function(l){
+    l.addEventListener('click',function(){
+      history.replaceState(null,'','#'+l.dataset.tab);
+    });
+  });
+})();
+</script>
+
+<footer>
+  <span>Generated 21 Aug 2026, applied before the deadline</span>
+  <span>Fantasy Premier League · entry 3593814</span>
+</footer>
+</div>
+</body></html>
