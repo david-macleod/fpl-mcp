@@ -136,7 +136,6 @@ class Player:
     proj: float = 0.0             # projected points
     opponent: str = ""            # e.g. "COV (H)"
     difficulty: int = 0           # 2-5, FPL fixture difficulty
-    note: str = ""                # injury flag, role note
     is_captain: bool = False
     is_vice: bool = False
 
@@ -183,6 +182,7 @@ class Report:
     caveats: list = field(default_factory=list)    # strings
     projected_points: float = 0.0
     generated: str = ""
+    manager: str = ""            # manager name, as shown on the FPL site
     persona_body: str = ""       # guest-pundit overview, in character
     persona_hint: str = ""       # playful label for the mystery pundit
 
@@ -224,7 +224,6 @@ def _shirt(player, size="normal"):
         badge = '<span class="armband vice" title="Vice-captain">V</span>'
 
     diff = f'<i class="d d{player.difficulty}"></i>' if player.difficulty else ""
-    note = f'<em class="flag">{e(player.note)}</em>' if player.note else ""
 
     return f"""
       <figure class="shirt-card {size}">
@@ -233,7 +232,6 @@ def _shirt(player, size="normal"):
           <b>{e(player.name)}</b>
           <span class="meta">{e(player.team)} · £{player.price:.1f}m</span>
           <span class="opp">{diff}{e(player.opponent)}</span>
-          {note}
         </figcaption>
       </figure>"""
 
@@ -455,8 +453,6 @@ figcaption .meta{display:block;font-family:var(--mono);font-size:10px;
   color:#B9C6D4;margin-top:3px}
 figcaption .opp{display:block;font-family:var(--mono);font-size:10px;
   color:#8FA0B2;margin-top:2px}
-figcaption .flag{display:block;font-size:11px;color:var(--amber);
-  font-style:normal;margin-top:3px}
 .d{display:inline-block;width:7px;height:7px;border-radius:2px;
   margin-right:5px;vertical-align:middle}
 .d2{background:#3FCF6A}.d3{background:#C9C13F}.d4{background:#E08A3C}
@@ -744,7 +740,7 @@ def _team_sheet(report, pitch, shape):
     return f"""
       <div class="sheet">
         <div>
-          <h3>The team · {e(shape)}</h3>
+          <h3>{e(" · ".join(x for x in (report.entry_name, report.manager, shape) if x))}</h3>
           <div class="mini">{pitch}{_bench(report.bench)}</div>
         </div>
         <div>
