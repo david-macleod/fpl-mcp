@@ -555,6 +555,32 @@ FUNCTIONS
   - For when a browser cannot be launched. Find the token in DevTools >
     Application > Local Storage under the oidc.user:... key
 
+RUNNING ON A MACHINE WITHOUT ROOT (Linux)
+------------------------------------------
+Playwright's Chromium needs ~70 Ubuntu packages (libatk, GTK, fontconfig...)
+that `playwright install-deps` installs with sudo. Without sudo, get the same
+libraries unprivileged and the module finds them by itself:
+
+  .venv/bin/python -m playwright install chromium
+  .venv/bin/python -m playwright install-deps chromium --dry-run \
+      | grep -E '^\s+\S' | awk '{print $1}' > .chromium-libs/pkgs.txt
+  (cd .chromium-libs/debs && apt-get download $(cat ../pkgs.txt))
+  for d in .chromium-libs/debs/*.deb; do dpkg -x "$d" .chromium-libs/root; done
+
+_browser_env() detects .chromium-libs/root, builds LD_LIBRARY_PATH from every
+directory under it that holds a .so, and sets FONTCONFIG_PATH, then passes that
+env to chromium.launch(). The directory is gitignored (~300MB) and is a no-op
+where the system packages exist.
+
+This repo on Linux uses a venv: run everything with .venv/bin/python, not
+python3 (system Python is PEP 668 externally managed).
+
+Login failure reporting reads document.body.textContent, not innerText:
+innerText needs a computed layout and comes back empty in headless Chromium,
+which hid the site's "invalid username and/or password" banner. login()
+polls for either the redirect or that banner, so a bad password fails in
+~10s with the reason rather than after the full timeout with none.
+
 USAGE EXAMPLES
 --------------
 

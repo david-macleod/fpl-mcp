@@ -29,3 +29,5 @@ tmp/
 # OS
 .DS_Store
 Thumbs.db
+# Root-free Chromium libraries (unpacked .debs, ~300MB)
+.chromium-libs/

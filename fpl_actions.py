@@ -55,6 +55,34 @@ CREDENTIALS_PATH = os.path.join(os.path.dirname(__file__), ".credentials")
 # "*.credentials").
 SESSION_PATH = os.path.join(os.path.dirname(__file__), ".session.credentials")
 
+# Root-free Chromium runtime libraries. On a box where we cannot ``sudo
+# playwright install-deps``, the needed Ubuntu packages are downloaded with
+# ``apt-get download`` (no privileges required) and unpacked under
+# ``.chromium-libs/root``; ``_browser_env()`` then points the browser at them.
+# Absent on machines with the system packages installed, and harmless there.
+CHROMIUM_LIBS_DIR = os.path.join(os.path.dirname(__file__), ".chromium-libs", "root")
+
+
+def _browser_env():
+    """Environment for the Chromium subprocess, adding the local libraries in
+    :data:`CHROMIUM_LIBS_DIR` when that directory exists.
+
+    :return: Environment mapping to pass to ``chromium.launch``.
+    :rtype: dict
+    """
+    env = dict(os.environ)
+    if not os.path.isdir(CHROMIUM_LIBS_DIR):
+        return env
+    lib_dirs = sorted({
+        dirpath for dirpath, _, files in os.walk(CHROMIUM_LIBS_DIR)
+        if any(".so" in f for f in files)
+    })
+    env["LD_LIBRARY_PATH"] = ":".join(lib_dirs + [env.get("LD_LIBRARY_PATH", "")]).rstrip(":")
+    fonts = os.path.join(CHROMIUM_LIBS_DIR, "etc", "fonts")
+    if os.path.isdir(fonts):
+        env["FONTCONFIG_PATH"] = fonts
+    return env
+
 # The Fantasy site's OAuth client. Its access token is kept in localStorage
 # under "oidc.user:<issuer>:<client id>".
 OIDC_CLIENT_ID = "bfcbaf69-aade-4c1b-8f00-c1cb8a193030"
@@ -111,7 +139,7 @@ async def login(email, password, headless=True, timeout=60000):
     from playwright.async_api import async_playwright
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=headless)
+        browser = await p.chromium.launch(headless=headless, env=_browser_env())
         context = await browser.new_context()
         page = await context.new_page()
 
@@ -138,14 +166,21 @@ async def login(email, password, headless=True, timeout=60000):
 
         # A successful login bounces back to fantasy.premierleague.com with
         # an authorization code the site exchanges for a session.
-        try:
-            await page.wait_for_url(f"{FANTASY_URL}/**", timeout=timeout)
-        except Exception:
-            raise Exception(
-                f"Login was not accepted: {await _login_error(page)} "
-                f"(still on {page.url[:80]}). Check the email and password "
-                f"in {CREDENTIALS_PATH}, or retry with headless=False."
-            )
+        # Poll rather than wait_for_url alone: the form's error banner is
+        # transient, so by the time a long wait expires the reason is gone.
+        deadline = time.time() + timeout / 1000
+        error = None
+        while not page.url.startswith(FANTASY_URL):
+            error = await _login_error(page)
+            if error or time.time() > deadline:
+                raise Exception(
+                    f"Login was not accepted: "
+                    f"{error or 'no error message on the page'} "
+                    f"(still on {page.url[:80]}). Check the email and "
+                    f"password in {CREDENTIALS_PATH}, or retry with "
+                    f"headless=False."
+                )
+            await page.wait_for_timeout(500)
 
         # The token appears in localStorage once the redirect has been
         # exchanged for it, which happens a moment after the navigation.
@@ -216,16 +251,23 @@ async def _dismiss_consent(page):
 
 
 async def _login_error(page):
-    """Best-effort read of the error the login form is showing."""
+    """Best-effort read of the error the login form is showing.
+
+    :return: The error line, or ``None`` when the form shows none.
+    :rtype: str or None
+    """
+    # textContent, not innerText: innerText needs a computed layout and reads
+    # as empty in headless Chromium while the form is still visible.
     try:
-        text = await page.evaluate("() => document.body.innerText")
+        text = await page.evaluate("() => document.body.textContent")
     except Exception:
-        return "no error message could be read"
-    for line in text.splitlines():
-        line = line.strip()
-        if "invalid" in line.lower() or "incorrect" in line.lower():
-            return line
-    return "no error message on the page"
+        return None
+    text = " ".join(text.split()).lower()
+    for marker in ("invalid username", "invalid", "incorrect", "locked", "too many"):
+        i = text.find(marker)
+        if i >= 0:
+            return text[i:i + 60].split("email address")[0].strip()
+    return None
 
 
 def save_session(session, path=SESSION_PATH):
