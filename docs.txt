@@ -714,7 +714,8 @@ DATACLASSES
     H2H WhatsApp updates: first person, dry, understated, banter-led; short
     declarative sentences; humour by precision and juxtaposition, never
     exclamation; one or two stats woven into sentences, not listed; always
-    one self-owning line; no pundit cliches, no hype, no em or en dashes.
+    one self-owning line; no pundit cliches, no hype, no em or en dashes;
+    short - two brief paragraphs, about 100 words in total.
 
 FUNCTIONS
 ---------

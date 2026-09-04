@@ -77,7 +77,8 @@ HOUSE_VOICE = (
     "One or two stats woven into sentences, not listed. Always one "
     "self-owning line - name your own mistakes before anyone else's. No "
     "pundit cliches, no hype, no em or en dashes. State confidence as "
-    "fact and doubt just as flatly."
+    "fact and doubt just as flatly. Short: two brief paragraphs, about "
+    "100 words in total."
 )
 
 
