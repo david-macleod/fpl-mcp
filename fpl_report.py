@@ -127,6 +127,7 @@ class Report:
     squad_value: float = 0.0
     bank: float = 0.0
     transfer_status: str = ""     # e.g. "unlimited", "1 free"
+    transfer_cost: int = 0        # points spent on hits this week
     xi: list = field(default_factory=list)         # 11 Players, any order
     bench: list = field(default_factory=list)      # ordered subs
     transfers: list = field(default_factory=list)  # Transfer
@@ -522,6 +523,13 @@ nav.tabs label:hover{color:var(--chalk)}
 .sheet .mini figcaption .meta,.sheet .mini figcaption .opp{font-size:9px}
 .sheet .mini .armband{width:18px;height:18px;font-size:9px;right:-6px;top:-4px}
 .sheet .mini .bench{margin-top:14px}
+.swaps{display:flex;gap:10px;margin:14px 0 2px}
+.swap{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--ink-2);border:1px solid var(--line);border-radius:14px;
+  padding:10px 6px 6px}
+.swap .shirt-card{width:80px;animation:none}
+.swap .shirt-card:first-of-type{opacity:.5;filter:grayscale(.5)}
+.swap-arrow{color:var(--lime);font-size:22px;line-height:1;flex:none}
 .sheet .mini .bench-list li{padding:8px 10px 6px}
 .sheet .mini .bench-list{gap:8px}
 .facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);
@@ -673,10 +681,20 @@ def _team_sheet(report, pitch, shape):
         <div><dt>Captain</dt><dd class="lime">{e(captain.name) if captain else '-'}</dd></div>
         <div><dt>Vice</dt><dd>{e(vice.name) if vice else '-'}</dd></div>
         <div><dt>Chip played</dt><dd>{e(chip_line)}</dd></div>
-        <div><dt>Transfers</dt><dd>{len(report.transfers)} · {e(report.transfer_status)}</dd></div>
+        <div><dt>Transfers</dt><dd>{len(report.transfers)} ({report.transfer_cost} points)</dd></div>
         <div><dt>Squad value</dt><dd>£{report.squad_value:.1f}m</dd></div>
         <div><dt>Projected XI</dt><dd>{report.projected_points:.0f} pts</dd></div>
       </dl>"""
+
+    swaps = ""
+    if report.transfers:
+        rows = "".join(f"""
+        <div class="swap">
+          {_shirt(t.out, "small")}
+          <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
+          {_shirt(t.into, "small")}
+        </div>""" for t in report.transfers)
+        swaps = f'<div class="swaps">{rows}</div>'
 
     verdict = ""
     if report.verdict_body:
@@ -696,6 +714,7 @@ def _team_sheet(report, pitch, shape):
         <div>
           <h3>The verdict</h3>
           {facts}
+          {swaps}
           {verdict}
         </div>
       </div>"""
