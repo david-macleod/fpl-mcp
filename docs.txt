@@ -703,18 +703,18 @@ DATACLASSES
   Report(gameweek, entry_name, entry_id, deadline, squad_value, bank,
          transfer_status, xi, bench, transfers, chips, chip_decision,
          captain_note, sections, caveats, projected_points, generated,
-         persona_body, persona_hint)
-  - persona_body: the guest-manager overview for the Team sheet tab, written
-    in character. persona_hint is the byline, e.g. "Guest manager: <name>".
-    The piece is written in character; the byline is the only framing
+         verdict_body)
+  - verdict_body: the manager's overview for the Team sheet tab, written in
+    HOUSE_VOICE (below). No byline: it is Claude the manager speaking, not
+    a persona. The guest-manager rotation was retired on David's request
+    (2026-09-04) in favour of this one consistent voice.
 
-  GUEST_MANAGERS / persona_for(gameweek)
-  - A fixed rotation of ten voices for the Team sheet verdict, each with a
-    note on how it reads on the page. persona_for() picks by gameweek, so the
-    schedule can be stated in advance and re-running an old gameweek
-    reproduces the same guest
-  - Chosen for voices that are unmistakable in writing alone. Fictional
-    characters are mixed in with real people deliberately
+  HOUSE_VOICE
+  - The style contract for verdict_body, and the same voice as the weekly
+    H2H WhatsApp updates: first person, dry, understated, banter-led; short
+    declarative sentences; humour by precision and juxtaposition, never
+    exclamation; one or two stats woven into sentences, not listed; always
+    one self-owning line; no pundit cliches, no hype, no em or en dashes.
 
 FUNCTIONS
 ---------
@@ -793,3 +793,19 @@ VERSION HISTORY
 
 v1.0 - Pitch-based XI, transfers table, 8-slot chip grid, captaincy cards,
        reasoning sections and caveats. Self-contained dark tactical theme.
+
+h2h_facts.py
+============
+
+Verified per-gameweek fact sheet for the H2H league (592794). Run before writing
+the weekly WhatsApp update; quote stats ONLY from its output, never from memory
+or a previous gameweek.
+
+    python3 h2h_facts.py [gw]     # defaults to latest started GW
+
+Pulls in one go: fixtures + finished flags, per-manager picks/captain/chip/
+transfers/bench, autosub-resolved provisional scores while fixtures are live,
+H2H matchup margins decomposed into unique starters + captain bonus, W/L emoji
+runs and provisional table, XI + full-squad overlap per pair, top GW scorers.
+Flags unfinished fixtures and unchecked bonus so you know when numbers are
+provisional.

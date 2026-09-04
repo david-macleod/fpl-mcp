@@ -68,63 +68,17 @@ SHIRT_DEFS = (f'<svg width="0" height="0" style="position:absolute" '
 POSITION_ORDER = {"GKP": 0, "DEF": 1, "MID": 2, "FWD": 3}
 
 
-# Guest managers for the Team sheet verdict, in rotation. Chosen for voices
-# that are unmistakable in *writing* alone - cadence, vocabulary and verbal
-# tics that survive without a voice or a face. A persona that only works as
-# an impression of a sound does not belong here.
-#
-# Fictional characters are deliberately mixed in with real people: they are
-# just as recognisable on the page and carry no question of putting words in
-# a living person's mouth.
-GUEST_MANAGERS = [
-    ("Brian Blessed",
-     "BELLOWING. Caps for emphasis, enormous appetite for everything, "
-     "Shakespearean overstatement about a goalkeeper clean sheet."),
-    ("Roy Keane",
-     "Withering contempt in short sentences. 'Not good enough.' Refuses to "
-     "be impressed by anything. Devastating when something goes well."),
-    ("Alan Partridge",
-     "Misplaced confidence, tortured sporting metaphors, needless "
-     "specifics, sudden defensiveness. 'Back of the net.'"),
-    ("Gordon Ramsay",
-     "Kitchen fury. Food similes for bad decisions, RAW, escalating "
-     "rhetorical questions. Keep it broadcast-clean."),
-    ("David Attenborough",
-     "Hushed wonder. The squad as a fragile ecosystem, the bench fodder as "
-     "a species facing a hard winter."),
-    ("Jose Mourinho",
-     "Third person, wounded superiority, 'if I speak I am in big trouble'. "
-     "Every setback is a conspiracy, every success is proof."),
-    ("Sir Alex Ferguson",
-     "Hairdryer restraint. Squeaky bum time, knowing asides about bottle "
-     "and character, a grudge held in perfect working order."),
-    ("Alan Sugar",
-     "Boardroom brusqueness. Dismissals delivered as verdicts, 'with all "
-     "due respect' meaning the opposite, pointing-finger energy. Sits in "
-     "judgement on the squad and fires the bench fodder."),
-    ("Jeremy Clarkson",
-     "Hyperbolic superlatives, absurd comparisons, the cheapest bench "
-     "player described as a national disgrace. Builds to 'and yet'."),
-    ("Arnold Schwarzenegger",
-     "Clipped imperatives, bodybuilding framing, 'come on', total "
-     "conviction. No hedging anywhere."),
-    ("Chris Kamara",
-     "Delighted football chaos. 'Unbelievable, Jeff!' Missing the obvious "
-     "then over-celebrating the trivial. Relentlessly cheerful."),
-    ("Peter Kay",
-     "Northern warmth. Domestic detail, a whole routine built out of "
-     "something trivial like the bench order, circling back to the same "
-     "joke until it is funnier."),
-]
-
-
-def persona_for(gameweek):
-    """Returns the (name, voice note) whose turn it is.
-
-    A fixed rotation rather than a random draw, so the schedule can be
-    stated in advance and a re-run of an old gameweek reproduces it.
-    """
-    return GUEST_MANAGERS[(gameweek - 1) % len(GUEST_MANAGERS)]
+# The verdict is written in the house voice - the same one used for the
+# weekly H2H updates, which David signed off. Not a persona: Claude the
+# manager, speaking for himself.
+HOUSE_VOICE = (
+    "First person, dry, understated, banter-led. Short declarative "
+    "sentences; humour by precision and juxtaposition, never exclamation. "
+    "One or two stats woven into sentences, not listed. Always one "
+    "self-owning line - name your own mistakes before anyone else's. No "
+    "pundit cliches, no hype, no em or en dashes. State confidence as "
+    "fact and doubt just as flatly."
+)
 
 
 @dataclass
@@ -183,8 +137,7 @@ class Report:
     projected_points: float = 0.0
     generated: str = ""
     manager: str = ""            # manager name, as shown on the FPL site
-    persona_body: str = ""       # guest-pundit overview, in character
-    persona_hint: str = ""       # playful label for the mystery pundit
+    verdict_body: str = ""       # the manager's overview, in HOUSE_VOICE
 
 
 # ------------------------------------------------------------------ helpers
@@ -579,8 +532,6 @@ nav.tabs label:hover{color:var(--chalk)}
 .facts dd.lime{color:var(--lime)}
 .verdict{background:var(--ink-2);border:1px solid var(--line);
   border-left:3px solid var(--amber);border-radius:4px;padding:14px 16px}
-.verdict .who{font-family:var(--mono);font-size:20px;letter-spacing:.06em;
-  text-transform:uppercase;color:var(--amber);margin:0 0 12px;line-height:1.25}
 .verdict p{margin:0 0 8px;font-size:13.2px;line-height:1.5;color:#D2DCE6}
 .verdict p:last-of-type{margin:0}
 @media (max-width:900px){.sheet{grid-template-columns:1fr}}
@@ -727,13 +678,11 @@ def _team_sheet(report, pitch, shape):
       </dl>"""
 
     verdict = ""
-    if report.persona_body:
+    if report.verdict_body:
         paras = "".join(f"<p>{e(p.strip())}</p>"
-                        for p in report.persona_body.split("\n\n") if p.strip())
-        hint = report.persona_hint or "This week's guest pundit"
+                        for p in report.verdict_body.split("\n\n") if p.strip())
         verdict = f"""
         <div class="verdict">
-          <p class="who">{e(hint)}</p>
           {paras}
         </div>"""
 
