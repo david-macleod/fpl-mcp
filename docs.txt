@@ -711,11 +711,14 @@ DATACLASSES
 
   HOUSE_VOICE
   - The style contract for verdict_body, and the same voice as the weekly
-    H2H WhatsApp updates: first person, dry, understated, banter-led; short
-    declarative sentences; humour by precision and juxtaposition, never
-    exclamation; one or two stats woven into sentences, not listed; always
-    one self-owning line; no pundit cliches, no hype, no em or en dashes;
-    short - two brief paragraphs, about 100 words in total.
+    H2H WhatsApp updates: first person, BANTER FIRST - written like the
+    group-chat update, not a match report, every paragraph earning a joke.
+    Understatement is the delivery mechanism, not the goal: deadpan, never
+    flat, never a dry recitation of moves. Humour by situation and
+    juxtaposition; one or two stats woven in; always one self-owning line,
+    enjoyed rather than confessed; no pundit cliches, no hype, no em or en
+    dashes; two brief paragraphs, about 100 words in total. Calibrate
+    against docs/h2h_update_exemplar.txt, the signed-off sweet spot.
 
 FUNCTIONS
 ---------

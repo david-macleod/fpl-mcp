@@ -72,13 +72,15 @@ POSITION_ORDER = {"GKP": 0, "DEF": 1, "MID": 2, "FWD": 3}
 # weekly H2H updates, which David signed off. Not a persona: Claude the
 # manager, speaking for himself.
 HOUSE_VOICE = (
-    "First person, dry, understated, banter-led. Short declarative "
-    "sentences; humour by precision and juxtaposition, never exclamation. "
-    "One or two stats woven into sentences, not listed. Always one "
-    "self-owning line - name your own mistakes before anyone else's. No "
-    "pundit cliches, no hype, no em or en dashes. State confidence as "
-    "fact and doubt just as flatly. Short: two brief paragraphs, about "
-    "100 words in total."
+    "First person, banter first: written like the group-chat update, not a "
+    "match report, and every paragraph earns a joke. Understatement is the "
+    "delivery mechanism, not the goal - deadpan, never flat, never a dry "
+    "recitation of moves. Humour comes from situation and juxtaposition "
+    "('Bold, decisive, currently bottom'), not exclamation. One or two "
+    "stats woven into sentences. Always one self-owning line - name your "
+    "own mistakes before anyone else's, and enjoy them. No pundit cliches, "
+    "no hype, no em or en dashes. Short: two brief paragraphs, about 100 "
+    "words in total."
 )
 
 
