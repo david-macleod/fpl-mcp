@@ -539,6 +539,7 @@ nav.tabs label:hover{color:var(--chalk)}
   text-transform:uppercase;color:var(--mute);margin:0 0 4px}
 .facts dd{margin:0;font-family:var(--display);font-size:19px;line-height:1.1}
 .facts dd.lime{color:var(--lime)}
+.facts dd .dim{color:var(--mute);font-size:15px}
 .verdict{background:var(--ink-2);border:1px solid var(--line);
   border-left:3px solid var(--amber);border-radius:4px;padding:14px 16px}
 .verdict p{margin:0 0 8px;font-size:13.2px;line-height:1.5;color:#D2DCE6}
@@ -681,7 +682,7 @@ def _team_sheet(report, pitch, shape):
         <div><dt>Captain</dt><dd class="lime">{e(captain.name) if captain else '-'}</dd></div>
         <div><dt>Vice</dt><dd>{e(vice.name) if vice else '-'}</dd></div>
         <div><dt>Chip played</dt><dd>{e(chip_line)}</dd></div>
-        <div><dt>Transfers</dt><dd>{len(report.transfers)} ({report.transfer_cost} points)</dd></div>
+        <div><dt>Transfers</dt><dd>{len(report.transfers)} <span class="dim">({report.transfer_cost} points)</span></dd></div>
         <div><dt>Squad value</dt><dd>£{report.squad_value:.1f}m</dd></div>
         <div><dt>Projected XI</dt><dd>{report.projected_points:.0f} pts</dd></div>
       </dl>"""
