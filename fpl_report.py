@@ -140,7 +140,10 @@ class Report:
     caveats: list = field(default_factory=list)    # strings
     projected_points: float = 0.0
     generated: str = ""
-    manager: str = ""            # manager name, as shown on the FPL site
+    # No manager-name field: David asked for the team sheet heading to be
+    # "entry name · formation" and nothing else. A field here kept getting
+    # refilled by each week's build script (with the wrong name), so the
+    # heading no longer accepts one.
     verdict_body: str = ""       # the manager's overview, in HOUSE_VOICE
 
 
@@ -711,7 +714,7 @@ def _team_sheet(report, pitch, shape):
     return f"""
       <div class="sheet">
         <div>
-          <h3>{e(" · ".join(x for x in (report.entry_name, report.manager, shape) if x))}</h3>
+          <h3>{e(" · ".join(x for x in (report.entry_name, shape) if x))}</h3>
           <div class="mini">{pitch}{_bench(report.bench)}</div>
         </div>
         <div>

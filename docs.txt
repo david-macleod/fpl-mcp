@@ -712,6 +712,9 @@ DATACLASSES
          transfer_status, xi, bench, transfers, chips, chip_decision,
          captain_note, sections, caveats, projected_points, generated,
          verdict_body)
+  - The Team sheet heading is "entry name · formation", nothing else, by
+    David's instruction. There is deliberately no manager-name field: build
+    scripts kept refilling one with a guessed name, so it was removed.
   - verdict_body: the manager's overview for the Team sheet tab, written in
     HOUSE_VOICE (below). No byline: it is Claude the manager speaking, not
     a persona. The guest-manager rotation was retired on David's request
