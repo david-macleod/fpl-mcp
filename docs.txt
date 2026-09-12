@@ -8,9 +8,11 @@ MODULES OVERVIEW
 
 1. fpl_analyzer.py - Core analysis functionality
 0. fpl_projection.py - Per-gameweek points projections (season-rollover safe)
+0a. fpl_optimise.py - Minutes-aware ratings, best XI, transfer search
 2. fpl_actions.py - Authenticated login, lineup saving and transfers
 3. fpl_report.py - Self-contained HTML gameweek report
-4. [Future modules will be documented here]
+4. h2h_facts.py - Per-gameweek H2H league fact sheet
+5. [Future modules will be documented here]
 
 NOTE: fpl_session.py and credentials_manager.py are documented further down
 this file but no longer exist in the repo. fpl_actions.py replaces both.
@@ -655,11 +657,17 @@ Verified end to end on entry 3593814:
     confirm it landed, then reverted exactly)
   - /api/transfers/ accepting the payload shape, with an empty transfer list
 
+Also verified, on entry 3593814:
+  - real transfers with actual players. GW3 2026/27 applied two in one
+    payload (Roefs -> Verbruggen, Rice -> Cherki) and GW4 applied one
+    (Wilson -> Scott). element_in/element_out validation and the
+    selling-price check are exercised, and reading the squad back showed
+    transfers.made against transfers.limit, so a free move can be told
+    from one taking a hit
+
 NOT yet verified:
-  - a transfer with actual players in it. The payload shape, auth and
-    endpoint are proven, but element_in/element_out validation and the
-    selling-price check have not been exercised
-  - any chip being played. Chip routing is unit-tested offline only
+  - any chip being played. Chip routing is unit-tested offline only, so
+    treat the first chip as a new integration rather than a routine call
 
 VERSION HISTORY
 ===============
@@ -813,3 +821,85 @@ H2H matchup margins decomposed into unique starters + captain bonus, W/L emoji
 runs and provisional table, XI + full-squad overlap per pair, top GW scorers.
 Flags unfinished fixtures and unchecked bonus so you know when numbers are
 provisional.
+
+fpl_optimise.py
+===============
+
+Minutes-aware player ratings, best-XI selection and transfer search. Sits on
+top of fpl_projection.py.
+
+THE TRAP THIS EXISTS TO AVOID
+-----------------------------
+fpl_projection leans on last season's rate while this season's minutes are
+thin, because a three-match sample is noise. The price of that choice is one
+specific, repeatable error: a player who has LOST his place still reads as a
+starter.
+
+Harry Wilson (LEE) projected 6.41 for GW4 2026/27 on his Fulham record - the
+third-best asset in the squad - while playing 65, 45 and 17 minutes and
+scoring 4 points all season. In GW3 the same thing happened and was caught
+only by overruling the model by hand. This module puts the fix in code.
+
+  Squad(bootstrap, fixtures, history_past, gw_stats, squad_ids, selling)
+    .rate(element_id, gameweek) -> dict with model/blend/factor/adj
+    .rated(gameweek)            -> whole squad, best adjusted first
+    .best_xi(gameweek, ids=None) -> (xi, bench, total)
+    .best_transfers(gameweek, bank, free, horizon, hit, top, max_moves)
+    .play_factor(element_id)    -> 0.5..1.0 from recent minutes
+
+HOW A RATING IS BUILT
+---------------------
+  adj = 0.5 * (model + blend) * play_factor
+
+  - model is fpl_projection's fixture-aware number
+  - blend is FPL's own 0.5*points_per_game + 0.5*form. Fixture-blind and
+    short-sighted, but a record of what happened rather than an estimate
+  - play_factor scales by the share of the LAST TWO gameweeks' minutes the
+    player actually got, floored at 0.5. Recent minutes, not season minutes:
+    a player who missed GW1 injured and has started twice since (Mukiele) is
+    nailed now, and a season-long share would wrongly punish him
+  - the floor is deliberate. A bit-part player keeps half his projection
+    rather than losing all of it, because a substitute who comes on can
+    still return. It is a correction, not a veto
+
+Effect on GW4 2026/27: Wilson 6.41 -> 2.59 and sold. Cherki, 25 points from
+173 minutes, untouched at 6.08 - the adjustment is grounded in minutes, so it
+does not punish a genuine breakout for a small sample.
+
+BEST XI
+-------
+Brute-forces every legal formation (3-5 DEF, 2-5 MID, 1-3 FWD) and returns
+the highest total, with the bench ordered reserve-keeper-first then by
+descending rating, which is the substitution order worth having. A 5-4-1 is
+a normal output, not a bug: it is what a squad with one startable forward
+looks like.
+
+TRANSFERS
+---------
+best_transfers() scores every candidate by REBUILDING THE BEST XI with the
+new player in the squad, not by comparing the two players head to head. That
+is what stops it "upgrading" a substitute nobody was going to play - the
+GW4 search correctly valued Wilson -> Scott at +3.63 to the eleven because
+Scott starts and Anderson drops to the bench.
+
+Hits are priced, not avoided: moves beyond `free` cost `hit` points each and
+the net is reported, so a -4 is taken only when it wins. GW4: the best pair
+netted 2.99 against 4.05 for the single move, so one transfer was made.
+
+PERFORMANCE
+-----------
+rate() is memoised and _candidates() keeps only the `pool` best affordable
+buys per position. Without both, the two-move search runs to millions of
+combinations and does not finish - the first GW4 attempt was killed at 120s.
+
+CAVEAT
+------
+The minutes adjustment is calibrated against one failure (Wilson) and has not
+run a full season. It could as easily underrate a player about to win his
+place back. Treat adj as a prior to argue with, not an answer.
+
+VERSION HISTORY
+===============
+
+v1.0 - Minutes-aware ratings, brute-force best XI, XI-delta transfer search
+       with priced hits.
