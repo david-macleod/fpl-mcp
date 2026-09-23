@@ -6,7 +6,8 @@ hour, with wild animals roaming through it.
     python render.py                    # full size 2400x1600 -> wild_hours.png
     python render.py --width 900 --out preview.png
 
-Pipeline (every step is per-pixel numpy maths, no drawing libraries):
+Only numpy is used (plus the Python standard library, e.g. zlib inside the
+hand-written PNG encoder). Every step is per-pixel maths:
   1. paper    - cold-press paper tooth, fibres and cockling
   2. geometry - pinhole camera rays -> G-buffer (object, face, hit point)
   3. light    - sun shadows projected from every sprite onto all surfaces
@@ -19,11 +20,10 @@ import sys
 import time
 
 import numpy as np
-from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from wc_core import Painter  # noqa: E402
+from wc_core import Painter, write_png  # noqa: E402
 from wc_city import Scene  # noqa: E402
 from wc_flora import populate_flora  # noqa: E402
 from wc_fauna import populate_fauna  # noqa: E402
@@ -44,7 +44,7 @@ def render(width, height, out, debug=False):
     log(f"ray cast: {len(S.boxes)} boxes, {len(S.sprites)} sprites")
     if debug:
         dbg = ((S.oid.astype(np.int64) * 2654435761) % 255).astype(np.uint8)
-        Image.fromarray(dbg).save(os.path.splitext(out)[0] + '_ids.png')
+        write_png(os.path.splitext(out)[0] + '_ids.png', np.repeat(dbg[..., None], 3, axis=2))
     S.cast_shadows()
     log("shadows")
     S.paint_underwash()
@@ -66,7 +66,7 @@ def render(width, height, out, debug=False):
     S.finish()
     log("reflections, pencil, splatter, vignette, paper grain")
     img = np.clip(P.R, 0, 1)
-    Image.fromarray((img * 255 + 0.5).astype(np.uint8)).save(out)
+    write_png(out, (img * 255 + 0.5).astype(np.uint8))
     log(f"saved {out}")
 
 

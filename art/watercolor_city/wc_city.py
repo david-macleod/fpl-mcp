@@ -10,9 +10,9 @@ import math
 import random
 
 import numpy as np
-from scipy import ndimage
 
-from wc_core import (F32, smoothstep, fbm, hash01, sd_box, sd_tri, pig, region_sd)
+from wc_core import (F32, smoothstep, fbm, hash01, sd_box, sd_tri, pig, region_sd, edt,
+                     label_boxes, mask_box)
 
 NEAR = 0.3
 
@@ -217,7 +217,8 @@ class Scene:
             self._cast_box(bx)
         for sp in sorted(self.sprites, key=lambda s: -s.Z):
             self._cast_sprite(sp)
-        self.slices = ndimage.find_objects(self.oid + 2)
+        # bounding box of every object's visible pixels (label = id + 2)
+        self.slices = label_boxes(self.oid + 2, self._next_id + 2)
 
     def _cast_ground(self):
         P, c = self.P, self.cam
@@ -295,7 +296,7 @@ class Scene:
 
     # ------------------------------------------------------------ regions
     def region(self, oid, face=None, pad=16):
-        sl = self.slices[oid + 1] if oid + 1 < len(self.slices) else None
+        sl = self.slices[oid + 2] if oid + 2 < len(self.slices) else None
         if sl is None:
             return None, None
         P = self.P
@@ -381,7 +382,7 @@ class Scene:
         m = self.shadow & self.lit_receiver(b)
         if not m.any():
             return
-        sl = ndimage.find_objects(m.astype(np.int8))[0]
+        sl = mask_box(m)
         pad = 12
         b = (max(0, sl[0].start - pad), min(P.H, sl[0].stop + pad),
              max(0, sl[1].start - pad), min(P.W, sl[1].stop + pad))
@@ -982,7 +983,8 @@ class Scene:
         segs.append((c.xv - 0.25, c.yh, c.xv + 0.35, c.yh))
         b = P.full()
         sx, sy = P.grid(b)
-        dist = ndimage.distance_transform_edt(~e) * P.px
+        # exact out to well beyond the line width plus its hand wobble
+        dist = edt(e, 6 + int(0.006 * P.H)) * P.px
         for (x0, y0, x1, y1) in segs:
             bb = P.bbox_from_screen([x0, x1], [y0, y1], pad=0.003)
             if bb is None:

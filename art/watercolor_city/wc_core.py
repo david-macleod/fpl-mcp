@@ -16,7 +16,6 @@ import math
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
-from scipy import ndimage
 
 F32 = np.float32
 _POOL = ThreadPoolExecutor(4)
@@ -340,16 +339,119 @@ def pig(*spec):
 # --------------------------------------------------------------------------
 # utilities on pixel crops
 # --------------------------------------------------------------------------
+def edt(seeds, cap):
+    """Euclidean distance (pixels) from every pixel to the nearest True pixel
+    of ``seeds``: exact up to ``cap``, clamped there.
+
+    Separable, numpy only. Down each column the 1-D distance comes from
+    running max/min of seed row indices (``accumulate``). Along rows,
+    D(j) = min_d G(j + d) + d^2 is evaluated as a chain of 3-tap min-plus
+    erosions with costs 1, 3, 5, ... whose partial sums are the squares."""
+    h, w = seeds.shape
+    cap = int(cap)
+    idx = np.arange(h, dtype=F32)[:, None]
+    big = F32(1e7)
+    last = np.maximum.accumulate(np.where(seeds, idx, -big), axis=0)
+    nxt = np.minimum.accumulate(np.where(seeds, idx, big)[::-1], axis=0)[::-1]
+    g = np.minimum(np.minimum(idx - last, nxt - idx), F32(cap))
+    G = g * g
+    cap2 = F32(cap * cap)
+
+    def rows(r):
+        a = G[r[0]:r[1]].copy()
+        b = np.empty_like(a)
+        for t in range(1, cap + 1):
+            if t % 4 == 1 and F32(t * t) >= a.max():
+                break  # no offset of length >= t can improve anything now
+            c = F32(2 * t - 1)
+            b[...] = a
+            np.minimum(b[:, 1:], a[:, :-1] + c, out=b[:, 1:])
+            np.minimum(b[:, :-1], a[:, 1:] + c, out=b[:, :-1])
+            a, b = b, a
+        return a
+
+    if h * w > 200_000 and h >= 8:
+        cuts = np.linspace(0, h, 5).astype(int)
+        parts = [(cuts[i], cuts[i + 1]) for i in range(4) if cuts[i + 1] > cuts[i]]
+        D = np.concatenate(list(_POOL.map(rows, parts)), axis=0)
+    else:
+        D = rows((0, h))
+    return np.sqrt(np.minimum(D, cap2))
+
+
 def region_sd(mask, px):
     """Signed distance (normalised screen units, negative inside) of a boolean
-    pixel mask, via exact Euclidean distance transforms."""
+    pixel mask. Exact to 3% of the image height, comfortably further than
+    any wash effect (softness, wobble, edge darkening) ever looks."""
     if not mask.any():
         return np.full(mask.shape, 1.0, F32)
     if mask.all():
         return np.full(mask.shape, -1.0, F32)
-    inside = ndimage.distance_transform_edt(mask)
-    outside = ndimage.distance_transform_edt(~mask)
+    cap = max(24, int(round(0.03 / px)))
+    inside = edt(~mask, cap)     # distance of inside pixels to the outside
+    outside = edt(mask, cap)     # distance of outside pixels to the inside
     return ((outside - inside + np.where(mask, 0.5, -0.5)) * px).astype(F32)
+
+
+def label_boxes(labels, n):
+    """Bounding boxes of the non-negative integer labels 0..n-1 as a list of
+    (row slice, column slice) or None."""
+    h, w = labels.shape
+    in_row = np.zeros((n, h), bool)
+    in_col = np.zeros((n, w), bool)
+    in_row[labels, np.arange(h)[:, None]] = True
+    in_col[labels, np.arange(w)[None, :]] = True
+    out = []
+    for lab in range(n):
+        r = np.flatnonzero(in_row[lab])
+        if r.size == 0:
+            out.append(None)
+            continue
+        c = np.flatnonzero(in_col[lab])
+        out.append((slice(r[0], r[-1] + 1), slice(c[0], c[-1] + 1)))
+    return out
+
+
+def mask_box(mask):
+    """Bounding (row slice, column slice) of a boolean mask, or None."""
+    r = np.flatnonzero(mask.any(axis=1))
+    if r.size == 0:
+        return None
+    c = np.flatnonzero(mask.any(axis=0))
+    return (slice(r[0], r[-1] + 1), slice(c[0], c[-1] + 1))
+
+
+def write_png(path, rgb):
+    """Minimal PNG encoder for an (h, w, 3) uint8 array. Scanlines use the
+    Paeth predictor (computed with numpy), then the standard library's zlib
+    deflates them into the IDAT chunk."""
+    import struct
+    import zlib
+    h, w, _ = rgb.shape
+    x = rgb.astype(np.int16)
+    a = np.zeros_like(x)
+    a[:, 1:] = x[:, :-1]            # left
+    b = np.zeros_like(x)
+    b[1:] = x[:-1]                  # up
+    c = np.zeros_like(x)
+    c[1:, 1:] = x[:-1, :-1]         # up-left
+    p = a + b - c
+    pa, pb, pc = np.abs(p - a), np.abs(p - b), np.abs(p - c)
+    pred = np.where((pa <= pb) & (pa <= pc), a, np.where(pb <= pc, b, c))
+    filt = ((x - pred) & 0xFF).astype(np.uint8).reshape(h, w * 3)
+    raw = np.empty((h, w * 3 + 1), np.uint8)
+    raw[:, 0] = 4                   # filter type 4 = Paeth
+    raw[:, 1:] = filt
+
+    def chunk(tag, data):
+        return (struct.pack('>I', len(data)) + tag + data
+                + struct.pack('>I', zlib.crc32(tag + data) & 0xFFFFFFFF))
+
+    with open(path, 'wb') as fh:
+        fh.write(b'\x89PNG\r\n\x1a\n')
+        fh.write(chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0)))
+        fh.write(chunk(b'IDAT', zlib.compress(raw.tobytes(), 6)))
+        fh.write(chunk(b'IEND', b''))
 
 
 def upsample_to(a, shape, step):

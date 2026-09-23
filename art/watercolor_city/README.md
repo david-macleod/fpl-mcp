@@ -5,13 +5,16 @@
 A city avenue at golden hour after rain, with elephants, zebras, giraffes, a
 lion, a stag, a fox, flamingos and a flock of birds roaming through it.
 
-Every pixel is computed with plain numpy maths. There is no drawing library,
-brush engine or image asset: PIL is only used to write the PNG.
+Every pixel is computed with plain numpy maths, and **numpy is the only
+dependency**. There is no drawing or image library, no brush engine and no
+image asset. The distance transforms, bounding boxes and the PNG encoder are
+all written here with numpy. The encoder uses only the Python standard
+library's `zlib` to deflate the finished bytes.
 
 ## Run it
 
 ```bash
-pip install -r requirements.txt
+pip install numpy
 python render.py                              # 2400x1600 -> wild_hours.png (~1 min on 4 cores)
 python render.py --width 900 --out preview.png
 ```
@@ -47,8 +50,17 @@ one wash with:
   each described by an SDF in world metres
 
 The result is a G-buffer of object, face, world hit point and depth. Region
-edges come from exact Euclidean distance transforms of that buffer, so every
-wash knows how far each pixel is from its boundary.
+edges come from Euclidean distance transforms of that buffer, so every wash
+knows how far each pixel is from its boundary. The transform is written in
+numpy (`wc_core.edt`) and is separable:
+
+- down each column, running maxima and minima of seed indices give the 1-D
+  distance
+- along each row, `min_d G(j+d) + d²` is a chain of 3-tap min-plus erosions
+  with costs 1, 3, 5, …, whose partial sums are the squares
+
+It is exact out to 3% of the image height, which is further than any
+watercolour effect looks.
 
 **Light**. The sun sits low on the right. Shadows are projected per pixel:
 
@@ -87,7 +99,7 @@ through the foliage.
 | file | contents |
 | --- | --- |
 | `render.py` | entry point / pipeline |
-| `wc_core.py` | noise, SDF primitives, pigments, paper and the wash model |
+| `wc_core.py` | noise, SDF primitives, distance transform, PNG encoder, pigments, paper and the wash model |
 | `wc_city.py` | camera, ray casting, shadows, sky, skyline, buildings, street, reflections, finishing |
 | `wc_flora.py` | park trees and street lamps |
 | `wc_fauna.py` | the animals and the birds |
