@@ -2049,12 +2049,301 @@ static int write_png(const char *fn, const uint8_t *rgb, int w, int h) {
 }
 
 /* =========================================================================
+ * Watercolour stylisation
+ * -------------------------------------------------------------------------
+ * The path-traced frame is repainted, per pixel, as transparent pigment on paper:
+ *   abstraction  generalised Kuwahara filter (8 soft sectors, radius grows with depth) flattens
+ *                texture into washes while keeping shapes; the animals stay crisp
+ *   wobble       washes are sampled through a noise displacement field, so edges look hand-made
+ *   wet-in-wet   the sky, the far city and random patches bleed into a blurred copy of the wash;
+ *                a darker "backrun" rim forms where a wet patch meets a dry one
+ *   pigment      colour is darkened by a density factor d (Bousseau et al. 2006):
+ *                    C' = C (1 - (1 - C)(d - 1))
+ *                d combines edge darkening (pigment pooling at wash boundaries), turbulent flow,
+ *                granulation into the paper grain and fine dispersion
+ *   pencil       a faint graphite underdrawing traced from discontinuities in a primary-ray
+ *                geometry buffer: object id, depth (second difference of 1/z) and normals
+ *   paper        cold-press paper height field (cellular + gradient noise), embossed by a
+ *                raking light, with an irregular unpainted margin
+ * ========================================================================= */
+typedef struct { float depth, nx, ny, nz, sun; int32_t id, kind; } GPix;
+enum { GK_SKY, GK_GROUND, GK_PAVEMENT, GK_BUILDING, GK_ANIMAL, GK_TREE, GK_PROP };
+static double WC_EXPOSURE = 1.9;
+
+static void compute_gbuffer(GPix *gb, int w, int h) {
+#pragma omp parallel for schedule(dynamic, 4)
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++) {
+            double sx = (2.0 * (x + 0.5) / w - 1.0) * cam_tan * cam_aspect, sy = (1.0 - 2.0 * (y + 0.5) / h) * cam_tan;
+            V d = norm(add(cam_f, add(mul(cam_r, sx), mul(cam_u, sy))));
+            GPix *g = gb + (size_t)y * w + x;
+            Hit hh;
+            if (!intersect(cam_o, d, BIG, &hh, 0)) {
+                g->depth = 1e9f; g->nx = (float)-d.x; g->ny = (float)-d.y; g->nz = (float)-d.z;
+                g->id = 0; g->kind = GK_SKY; g->sun = 1.0f;
+                continue;
+            }
+            V nn = dot(hh.n, d) > 0 ? mul(hh.n, -1.0) : hh.n;
+            g->depth = (float)hh.t; g->nx = (float)nn.x; g->ny = (float)nn.y; g->nz = (float)nn.z;
+            /* is this point in sunlight? (drives warm lights / cool shadows) */
+            double NoL = dot(nn, g_sun_dir);
+            g->sun = (float)(NoL > 0 && !intersect(madd(hh.p, nn, 2e-3 + hh.t * 2e-5), g_sun_dir, BIG, NULL, 1) ? sstep(0.0, 0.12, NoL) : 0.0);
+            if (hh.type == HT_GROUND) { g->id = 1; g->kind = GK_GROUND; }
+            else if (hh.type == HT_BOX) {
+                const Prim *p = &g_prims[hh.prim];
+                if (p->sub == BX_SIDEWALK) { g->id = 10 + hh.prim; g->kind = GK_PAVEMENT; }
+                else { g->id = 100000 + p->obj; g->kind = GK_BUILDING; }
+            } else {
+                const Sobj *o = &g_sobj[g_prims[hh.prim].obj];
+                g->id = 200000 + (int)(o - g_sobj);
+                g->kind = o->kind <= SK_ZEBRA ? GK_ANIMAL : (o->kind == SK_TREE ? GK_TREE : GK_PROP);
+            }
+        }
+}
+
+/* generalised Kuwahara filter (Papari et al. 2007) with a per-pixel radius */
+typedef struct { short dx, dy, k0, k1; float w0, w1; } KTap;
+#define KMAXR 9
+static void kuwahara(const float *src, float *dst, const float *rad, int w, int h) {
+    KTap *taps[KMAXR + 1];
+    int ntap[KMAXR + 1];
+    for (int r = 1; r <= KMAXR; r++) {
+        taps[r] = malloc(sizeof(KTap) * (size_t)(2 * r + 1) * (2 * r + 1));
+        ntap[r] = 0;
+        double sig = 0.5 * r;
+        for (int dy = -r; dy <= r; dy++)
+            for (int dx = -r; dx <= r; dx++) {
+                if (dx * dx + dy * dy > r * r) continue;
+                double g = exp(-(dx * dx + dy * dy) / (2 * sig * sig));
+                KTap t;
+                t.dx = (short)dx; t.dy = (short)dy;
+                if (dx == 0 && dy == 0) { t.k0 = t.k1 = -1; t.w0 = (float)(g / 8.0); t.w1 = 0; }
+                else {
+                    double s = atan2((double)dy, (double)dx) / (2 * PI / 8);
+                    if (s < 0) s += 8;
+                    int k0 = (int)floor(s);
+                    double f = s - k0;
+                    t.k0 = (short)(k0 % 8); t.k1 = (short)((k0 + 1) % 8);
+                    t.w0 = (float)(g * (1 - f)); t.w1 = (float)(g * f);
+                }
+                taps[r][ntap[r]++] = t;
+            }
+    }
+#pragma omp parallel for schedule(dynamic, 4)
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++) {
+            int r = (int)(rad[(size_t)y * w + x] + 0.5);
+            r = r < 1 ? 1 : (r > KMAXR ? KMAXR : r);
+            double m[8][3] = {{0}}, s2[8] = {0}, ws[8] = {0};
+            for (int i = 0; i < ntap[r]; i++) {
+                const KTap *t = &taps[r][i];
+                int xx = x + t->dx, yy = y + t->dy;
+                xx = xx < 0 ? 0 : (xx >= w ? w - 1 : xx);
+                yy = yy < 0 ? 0 : (yy >= h ? h - 1 : yy);
+                const float *c = src + ((size_t)yy * w + xx) * 3;
+                double q = c[0] * c[0] + c[1] * c[1] + c[2] * c[2];
+                if (t->k0 < 0) {
+                    for (int k = 0; k < 8; k++) { m[k][0] += t->w0 * c[0]; m[k][1] += t->w0 * c[1]; m[k][2] += t->w0 * c[2]; s2[k] += t->w0 * q; ws[k] += t->w0; }
+                } else {
+                    m[t->k0][0] += t->w0 * c[0]; m[t->k0][1] += t->w0 * c[1]; m[t->k0][2] += t->w0 * c[2]; s2[t->k0] += t->w0 * q; ws[t->k0] += t->w0;
+                    m[t->k1][0] += t->w1 * c[0]; m[t->k1][1] += t->w1 * c[1]; m[t->k1][2] += t->w1 * c[2]; s2[t->k1] += t->w1 * q; ws[t->k1] += t->w1;
+                }
+            }
+            double num[3] = {0, 0, 0}, den = 0;
+            for (int k = 0; k < 8; k++) {
+                if (ws[k] <= 0) continue;
+                double mr = m[k][0] / ws[k], mg = m[k][1] / ws[k], mb = m[k][2] / ws[k];
+                double var = fmax(s2[k] / ws[k] - (mr * mr + mg * mg + mb * mb), 0.0);
+                double a = 1.0 / (1.0 + pow(var * 600.0, 4.0));
+                num[0] += a * mr; num[1] += a * mg; num[2] += a * mb; den += a;
+            }
+            float *o = dst + ((size_t)y * w + x) * 3;
+            o[0] = (float)(num[0] / den); o[1] = (float)(num[1] / den); o[2] = (float)(num[2] / den);
+        }
+    for (int r = 1; r <= KMAXR; r++) free(taps[r]);
+}
+
+static double paper_height(double x, double y) {
+    double f1 = voronoi2(x / 6.0, y / 6.0, NULL);
+    return 0.5 * (1.0 - fmin(f1, 1.0)) + 0.3 * (0.5 + 0.5 * noise2(x / 2.6 + 11.0, y / 2.6)) +
+           0.2 * (0.5 + 0.5 * fbm2(x / 16.0, y / 16.0 - 3.0, 2));
+}
+static inline int clampi(int v, int a, int b) { return v < a ? a : (v > b ? b : v); }
+
+static void watercolor(const float *hdr, const GPix *gb, uint8_t *out, int w, int h) {
+    size_t n = (size_t)w * h;
+    float *base = malloc(n * 3 * sizeof(float)), *rad = malloc(n * sizeof(float));
+    float *wash = malloc(n * 3 * sizeof(float)), *wet = malloc(n * 3 * sizeof(float));
+    float *comp = malloc(n * 3 * sizeof(float)), *wetm = malloc(n * sizeof(float));
+    float *lum_ = malloc(n * 3 * sizeof(float)), *lumb = malloc(n * 3 * sizeof(float));
+    float *line = malloc(n * 3 * sizeof(float)), *lineb = malloc(n * 3 * sizeof(float));
+
+    /* 1. high-key watercolour palette: soft shoulder, lifted darks, cool shadows, warm light */
+    float *sunm = malloc(n * 3 * sizeof(float)), *sunb = malloc(n * 3 * sizeof(float));
+    for (size_t i = 0; i < n; i++) sunm[3 * i] = sunm[3 * i + 1] = sunm[3 * i + 2] = gb[i].sun;
+    gblur(sunm, sunb, w, h, 1.5);
+#pragma omp parallel for
+    for (size_t i = 0; i < n; i++) {
+        V c = mul(vv(hdr[3 * i], hdr[3 * i + 1], hdr[3 * i + 2]), WC_EXPOSURE);
+        c = vv(srgb(1.0 - exp(-c.x)), srgb(1.0 - exp(-c.y)), srgb(1.0 - exp(-c.z)));
+        double px = (double)(i % (size_t)w), py = (double)(i / (size_t)w);
+        c = mulv(c, vv(1.0 + 0.07 * noise2(px / 260.0 + 1.7, py / 260.0), 1.0 + 0.05 * noise2(px / 260.0, py / 260.0 + 4.1),
+                       1.0 + 0.08 * noise2(px / 260.0 - 3.9, py / 260.0 - 2.2)));
+        double sun = sunb[3 * i], L = lum(c);
+        c = mixv(c, mulv(c, vv(0.8, 0.87, 1.24)), 0.8 * (1.0 - sun) * sstep(0.95, 0.4, L)); /* ultramarine shadows */
+        c = mixv(c, mulv(c, vv(1.07, 1.01, 0.9)), 0.6 * sun);                                /* warm sunlit washes */
+        L = lum(c);
+        c = add(vs(L), mul(sub(c, vs(L)), 1.0 + 0.35 * sstep(0.3, 0.7, L)));                /* luminous, not muddy */
+        c = add(vs(0.16), mul(c, 0.84));
+        base[3 * i] = (float)clampd(c.x, 0, 1); base[3 * i + 1] = (float)clampd(c.y, 0, 1); base[3 * i + 2] = (float)clampd(c.z, 0, 1);
+        const GPix *g = gb + i;
+        double r = 4.0 + 5.0 * sstep(10.0, 120.0, g->depth);
+        if (g->kind == GK_ANIMAL) r = 3.5;
+        if (g->kind == GK_TREE) r = fmax(r, 6.0);
+        if (g->kind == GK_SKY) r = 9.0;
+        rad[i] = (float)r;
+    }
+    /* 2. abstraction into washes */
+    kuwahara(base, wash, rad, w, h);
+    /* 3. glazes: soft luminance bands with wandering thresholds, like layers of dried washes */
+#pragma omp parallel for schedule(dynamic, 8)
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++) {
+            float *c = wash + 3 * ((size_t)y * w + x);
+            double L = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+            double v = L * 6.0 + 0.55 * fbm2(x / 70.0, y / 70.0 + 5.0, 3);
+            double q = (floor(v) + sstep(0.35, 0.65, fractd(v)) - 0.55 * fbm2(x / 70.0, y / 70.0 + 5.0, 3)) / 6.0;
+            double k = mixd(1.0, clampd(q, 0.02, 1.0) / fmax(L, 0.02), 0.6);
+            for (int j = 0; j < 3; j++) c[j] = (float)clampd(c[j] * k, 0.0, 1.0);
+        }
+    gblur(wash, wet, w, h, 3.5);
+    /* 4. wobbled sampling, wet-in-wet blending */
+#pragma omp parallel for schedule(dynamic, 8)
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++) {
+            size_t i = (size_t)y * w + x;
+            double wx = x + 2.6 * noise2(x / 36.0, y / 36.0) + 1.0 * noise2(x / 8.0 + 5.1, y / 8.0);
+            double wy = y + 2.6 * noise2(x / 36.0 + 17.3, y / 36.0 - 8.1) + 1.0 * noise2(x / 8.0 - 2.7, y / 8.0 + 4.4);
+            V a = img_bilinear(wash, w, h, wx, wy);
+            V b = img_bilinear(wet, w, h, wx + 7.0 * noise2(x / 45.0 - 3.3, y / 45.0), wy + 7.0 * noise2(x / 45.0, y / 45.0 + 6.6));
+            const GPix *g = gb + i;
+            double far = g->kind == GK_SKY ? 1.0 : sstep(60.0, 600.0, g->depth);
+            double wm = sstep(0.4, 0.6, 0.3 + 0.55 * fbm2(x / 200.0, y / 200.0, 4) + 0.45 * far);
+            if (g->kind == GK_ANIMAL) wm *= 0.2;
+            V c = mixv(a, b, wm);
+            if (g->kind == GK_GROUND) {
+                double fg = sstep(0.74, 1.0, (double)y / h + 0.06 * fbm2(x / 90.0, y / 90.0, 3)) * (1.0 - 0.6 * sstep(0.46, 0.6, (double)x / w));
+                c = mixv(c, vs(1.0), 0.6 * fg);
+            }
+            comp[3 * i] = (float)c.x; comp[3 * i + 1] = (float)c.y; comp[3 * i + 2] = (float)c.z;
+            wetm[i] = (float)wm;
+            float L = (float)lum(c);
+            lum_[3 * i] = lum_[3 * i + 1] = lum_[3 * i + 2] = L;
+        }
+    gblur(lum_, lumb, w, h, 1.0);
+    /* 5. pencil underdrawing (offset from the paint) and paper gaps between neighbouring washes */
+#pragma omp parallel for schedule(dynamic, 8)
+    for (int y = 0; y < h; y++)
+        for (int x = 0; x < w; x++) {
+            size_t i = (size_t)y * w + x;
+            int sx = clampi(x + (int)lround(1.6 * noise2(x / 55.0 + 40.0, y / 55.0)), 1, w - 2);
+            int sy = clampi(y + (int)lround(1.6 * noise2(x / 55.0, y / 55.0 - 40.0)), 1, h - 2);
+            const GPix *c = gb + (size_t)sy * w + sx, *l = c - 1, *r = c + 1, *u = c - w, *dn = c + w;
+            double e = (c->id != l->id || c->id != r->id || c->id != u->id || c->id != dn->id) ? 1.0 : 0.0;
+            double dd = fabs(c->depth / r->depth + c->depth / l->depth - 2.0) + fabs(c->depth / u->depth + c->depth / dn->depth - 2.0);
+            e = fmax(e, sstep(0.08, 0.25, dd));
+            double nd = (1.0 - (l->nx * r->nx + l->ny * r->ny + l->nz * r->nz)) + (1.0 - (u->nx * dn->nx + u->ny * dn->ny + u->nz * dn->nz));
+            e = fmax(e, sstep(0.15, 0.45, nd));
+            double dm = fmin(fmin(c->depth, l->depth), fmin(r->depth, fmin(u->depth, dn->depth)));
+            e *= sstep(300.0, 50.0, dm);
+            if (c->kind == GK_TREE) e *= 0.25;
+            e *= 0.15 + 0.85 * sstep(-0.25, 0.4, noise2(x / 38.0, y / 38.0 + 9.0));
+            line[3 * i] = (float)e;
+            /* a hair-line of bare paper where two objects' washes meet (sampled with its own offset) */
+            int gx2 = clampi(x + (int)lround(2.2 * noise2(x / 30.0 - 12.0, y / 30.0)), 1, w - 2);
+            int gy2 = clampi(y + (int)lround(2.2 * noise2(x / 30.0, y / 30.0 + 12.0)), 1, h - 2);
+            const GPix *c2 = gb + (size_t)gy2 * w + gx2;
+            double gap = (c2->id != (c2 - 1)->id || c2->id != (c2 + 1)->id || c2->id != (c2 - w)->id || c2->id != (c2 + w)->id) ? 1.0 : 0.0;
+            gap *= sstep(200.0, 40.0, c2->depth) * sstep(0.0, 0.5, noise2(x / 25.0 + 3.0, y / 25.0));
+            line[3 * i + 1] = (float)gap;
+            line[3 * i + 2] = 0;
+        }
+    gblur(line, lineb, w, h, 0.75);
+    /* 6. pigment density, pencil, paper and the brushed edge of the painting */
+    const V paper = vv(0.97, 0.955, 0.92), graphite = vv(0.34, 0.33, 0.36);
+    enum { NSPLAT = 26 };
+    double spx[NSPLAT], spy[NSPLAT], spr[NSPLAT];
+    V spc[NSPLAT];
+    {
+        Rng sr = {424242};
+        for (int k = 0; k < NSPLAT; k++) {
+            double u = rnd(&sr);
+            spx[k] = (0.04 + 0.92 * rnd(&sr)) * w;
+            spy[k] = (0.3 + 0.66 * sqrt(rnd(&sr))) * h;
+            spr[k] = 1.5 + 6.0 * u * u * u;
+            V sc = img_bilinear(comp, w, h, clampd(spx[k] + 40.0 * (rnd(&sr) - 0.5), 0, w - 1), clampd(spy[k] - 25.0 * rnd(&sr), 0, h - 1));
+            double sl = lum(sc);
+            spc[k] = add(vs(sl), mul(sub(sc, vs(sl)), 1.6)); /* the same pigment as nearby, more saturated */
+        }
+    }
+#pragma omp parallel for schedule(dynamic, 8)
+    for (int y = 0; y < h; y++) {
+        Rng dith = {(uint64_t)y * 0x9E3779B97F4A7C15ULL + 77};
+        for (int x = 0; x < w; x++) {
+            size_t i = (size_t)y * w + x;
+            const GPix *g = gb + i;
+            int xl = x > 0 ? x - 1 : x, xr = x < w - 1 ? x + 1 : x, yu = y > 0 ? y - 1 : y, yd = y < h - 1 ? y + 1 : y;
+            double gx = lumb[3 * ((size_t)y * w + xr)] - lumb[3 * ((size_t)y * w + xl)];
+            double gy = lumb[3 * ((size_t)yd * w + x)] - lumb[3 * ((size_t)yu * w + x)];
+            double gmag = 0.5 * sqrt(gx * gx + gy * gy);
+            double hp = paper_height(x, y);
+            /* brush direction: vertical on façades, horizontal on the ground and in the sky */
+            double stroke = (g->kind == GK_BUILDING && fabs(g->ny) < 0.5) ? noise2(x / 13.0, y / 240.0) : noise2(x / 260.0, y / 11.0);
+            double d = 1.0;
+            d *= 1.0 + 0.8 * sstep(0.006, 0.05, gmag);                       /* pooling at wash edges */
+            d *= 1.0 + 0.42 * fbm2(x / 160.0 + 3.0, y / 160.0, 4);           /* turbulent flow */
+            d *= 1.0 + 0.8 * (0.5 - hp);                                     /* granulation */
+            d *= 1.0 + 0.14 * stroke;                                        /* brush marks */
+            d *= 1.0 + 0.08 * noise2(x / 1.6, y / 1.6);                      /* dispersion */
+            d *= 1.0 + 0.4 * exp(-sq((wetm[i] - 0.5) / 0.07));               /* backrun rims */
+            V c = vv(comp[3 * i], comp[3 * i + 1], comp[3 * i + 2]);
+            double L0 = lum(c);
+            c = vv(c.x * (1 - (1 - c.x) * (d - 1)), c.y * (1 - (1 - c.y) * (d - 1)), c.z * (1 - (1 - c.z) * (d - 1)));
+            c = vv(clampd(c.x, 0, 1), clampd(c.y, 0, 1), clampd(c.z, 0, 1));
+            c = mixv(c, vs(1.0), sstep(0.8, 0.93, L0));                      /* highlights are bare paper */
+            for (int k = 0; k < NSPLAT; k++) {                                   /* paint splatters */
+                double sd = sqrt(sq(x - spx[k]) + sq(y - spy[k])) - spr[k] * (1.0 + 0.25 * noise2(x / 2.0 + k, y / 2.0));
+                if (sd < 1.0) c = mixv(c, mulv(c, mul(spc[k], sd > -1.0 ? 0.9 : 1.0)), 0.55 * sstep(1.0, -0.5, sd));
+            }
+            c = mixv(c, vs(1.0), 0.6 * clampd(lineb[3 * i + 1], 0, 1));      /* gaps between washes */
+            c = mulv(c, mixv(vs(1.0), graphite, clampd(lineb[3 * i] * 0.32, 0.0, 0.45)));
+            /* crisp, irregular edge where the painting stops, dry-brushed on the paper grain */
+            double edge = fmin(fmin(x, w - 1 - x), fmin(y, h - 1 - y)) / (double)h;
+            double corner = sq((x - 0.5 * w) / (0.6 * w)) + sq((y - 0.5 * h) / (0.62 * h));
+            double reach = fmin(edge - 0.035, (1.18 - corner) * 0.12) + 0.022 * fbm2(x / 55.0, y / 55.0, 5);
+            double mpaint = sstep(0.0, 0.004, reach) * sstep(0.25, 0.6, hp + reach * 18.0);
+            double rim = sstep(0.0, 0.006, reach) * sstep(0.02, 0.008, reach);
+            c = vv(c.x * (1 - (1 - c.x) * 0.5 * rim), c.y * (1 - (1 - c.y) * 0.5 * rim), c.z * (1 - (1 - c.z) * 0.5 * rim));
+            c = mixv(vs(1.0), c, mpaint);
+            double shade = 1.0 + 0.06 * (paper_height(x - 1.0, y - 1.0) - paper_height(x + 1.0, y + 1.0));
+            V f = mul(mulv(paper, c), shade);
+            out[3 * i] = (uint8_t)clampd(f.x * 255.0 + rnd(&dith), 0, 255);
+            out[3 * i + 1] = (uint8_t)clampd(f.y * 255.0 + rnd(&dith), 0, 255);
+            out[3 * i + 2] = (uint8_t)clampd(f.z * 255.0 + rnd(&dith), 0, 255);
+        }
+    }
+    free(base); free(rad); free(wash); free(wet); free(comp); free(wetm); free(lum_); free(lumb); free(line); free(lineb);
+    free(sunm); free(sunb);
+}
+
+/* =========================================================================
  * Main
  * ========================================================================= */
 static double now(void) { struct timespec ts; clock_gettime(CLOCK_MONOTONIC, &ts); return ts.tv_sec + ts.tv_nsec * 1e-9; }
 
 int main(int argc, char **argv) {
-    const char *out = "cityscape_wildlife.png", *rawout = NULL, *rawin = NULL;
+    const char *out = "cityscape_wildlife.png", *rawout = NULL, *rawin = NULL, *gbufpath = NULL;
+    int style = 0; /* 0: photographic film, 1: watercolour */
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "-w") && i + 1 < argc) W = atoi(argv[++i]);
         else if (!strcmp(argv[i], "-h") && i + 1 < argc) H = atoi(argv[++i]);
@@ -2069,6 +2358,9 @@ int main(int argc, char **argv) {
         else if (!strcmp(argv[i], "-seed") && i + 1 < argc) SEED = atoi(argv[++i]);
         else if (!strcmp(argv[i], "-raw") && i + 1 < argc) rawout = argv[++i];
         else if (!strcmp(argv[i], "-develop") && i + 1 < argc) rawin = argv[++i];
+        else if (!strcmp(argv[i], "-style") && i + 1 < argc) { i++; style = !strncmp(argv[i], "water", 5); }
+        else if (!strcmp(argv[i], "-gbuf") && i + 1 < argc) gbufpath = argv[++i];
+        else if (!strcmp(argv[i], "-wcexp") && i + 1 < argc) WC_EXPOSURE = atof(argv[++i]);
         else { fprintf(stderr, "unknown argument %s\n", argv[i]); return 1; }
     }
     float *img;
@@ -2129,7 +2421,30 @@ int main(int argc, char **argv) {
         }
     }
     uint8_t *ldr = malloc((size_t)W * H * 3);
-    develop(img, ldr, W, H);
+    if (style == 1) {
+        GPix *gb = malloc(sizeof(GPix) * (size_t)W * H);
+        int have = 0, gw = 0, gh = 0;
+        FILE *gf = gbufpath ? fopen(gbufpath, "rb") : NULL;
+        if (gf) {
+            have = fread(&gw, 4, 1, gf) == 1 && fread(&gh, 4, 1, gf) == 1 && gw == W && gh == H &&
+                   fread(gb, sizeof(GPix), (size_t)W * H, gf) == (size_t)W * H;
+            fclose(gf);
+        }
+        if (!have) {
+            double t0 = now();
+            if (rawin) { setup_sky(); if (SCENE == 1) build_test_scene(); else build_city(); build_bvh(); }
+            setup_camera();
+            compute_gbuffer(gb, W, H);
+            fprintf(stderr, "geometry buffer %.1fs\n", now() - t0);
+            if (gbufpath && (gf = fopen(gbufpath, "wb"))) {
+                fwrite(&W, 4, 1, gf); fwrite(&H, 4, 1, gf); fwrite(gb, sizeof(GPix), (size_t)W * H, gf); fclose(gf);
+            }
+        }
+        double t1 = now();
+        watercolor(img, gb, ldr, W, H);
+        fprintf(stderr, "watercolour %.1fs\n", now() - t1);
+        free(gb);
+    } else develop(img, ldr, W, H);
     if (!write_png(out, ldr, W, H)) { fprintf(stderr, "cannot write %s\n", out); return 1; }
     fprintf(stderr, "wrote %s (%dx%d)\n", out, W, H);
     free(ldr); free(img);

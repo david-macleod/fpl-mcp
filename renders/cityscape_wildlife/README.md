@@ -12,6 +12,40 @@ pixel's colour is computed from maths: a ray is cast through the pixel, intersec
 analytically or by sphere tracing, and shaded by a Monte-Carlo estimate of the rendering
 equation.
 
+## Watercolour version
+
+![Rewilded Avenue in watercolour](cityscape_wildlife_watercolor.png)
+
+The same path-traced frame, repainted per pixel as transparent pigment on cold-press paper
+(`-style watercolour`, section "Watercolour stylisation" in `render.c`). It takes a few seconds
+because it reuses the saved HDR frame, plus one primary ray and one sun shadow ray per pixel
+for a geometry buffer. The stages:
+
+- **Palette.** A soft, high-key tone curve with lifted darks. Sunlit surfaces are warmed and
+  shadowed ones are pushed towards ultramarine; a shadow ray per pixel says which is which,
+  as a painter would decide.
+- **Washes.** A generalised Kuwahara filter (8 soft sectors, radius growing with depth; the
+  animals stay crisp) flattens texture into washes. Luminance is then banded into soft
+  "glazes" whose thresholds wander with noise, like layers of dried paint.
+- **Hand-made edges.** Washes are sampled through a noise displacement field. The sky, the
+  far city and random patches bleed wet-in-wet into a blurred copy, with dark "backrun"
+  rims where wet meets dry.
+- **Pigment.** Colour is darkened by a density factor `d` (Bousseau et al. 2006):
+  `C' = C·(1 − (1 − C)(d − 1))`. `d` combines pooling at wash edges, turbulent flow,
+  granulation into the paper grain, brush direction (vertical on façades, horizontal on the
+  road and sky) and fine dispersion. Highlights are left as bare paper.
+- **Pencil underdrawing.** It is traced from the geometry buffer: object-id changes, depth
+  steps (the second difference of 1/z, which is zero across any plane) and normal creases.
+  Thin paper gaps separate neighbouring washes, a few paint splatters are dropped, and the
+  foreground is a graded wash fading to paper.
+- **Paper.** Cellular plus gradient-noise grain, embossed by a raking light, with a
+  dry-brushed deckle edge where the painting stops.
+
+```sh
+make image         # path-trace and keep the HDR frame (cityscape_wildlife.raw)
+make watercolour   # repaint it as a watercolour
+```
+
 ## Build and run
 
 ```sh
@@ -30,6 +64,9 @@ make                      # gcc -O3 -march=native -ffast-math -fopenmp render.c 
 | `-lens R F` | thin-lens aperture radius and focus distance (metres) |
 | `-scene 1` | animal "turntable" test scene with no city |
 | `-raw file` / `-develop file` | save the linear HDR frame / re-grade a saved frame without re-rendering |
+| `-style watercolour` | develop the frame as a watercolour painting instead of a photograph |
+| `-wcexp E` | watercolour exposure (default 1.9) |
+| `-gbuf file` | cache the watercolour geometry buffer between runs |
 | `-seed N` | use a different block of samples (so several runs can be averaged) |
 
 ## What happens for every pixel
