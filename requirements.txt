@@ -6,3 +6,4 @@ certifi
 # Optional: only needed for fpl_actions.login() (browser-based login).
 # Cookie-based auth via cookies_from_string() works without it.
 # playwright>=1.40.0
+pulp>=3.0   # CBC solver for fpl_optimise.wildcard_squad()

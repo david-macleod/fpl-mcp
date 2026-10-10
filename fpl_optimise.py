@@ -257,3 +257,100 @@ class Squad:
             if counts[team] > limit:
                 return False
         return True
+
+    # ---------------------------------------------------------------- wildcard
+
+    def pool(self, gameweek, horizon=4, fut_weight=0.4):
+        """Every player rated for a full-squad rebuild, as a DataFrame.
+
+        ``score`` is this gameweek's adjusted projection plus ``fut_weight``
+        times the model projection summed over the next ``horizon``
+        gameweeks. A wildcard squad persists, so unlike a weekly transfer it
+        has to be judged on the run ahead, not just the next deadline.
+
+        ``cost`` is the selling price for players already owned and
+        ``now_cost`` for everyone else, which is exactly what the budget
+        constraint needs: keeping a player costs what he would have raised.
+        """
+        import pandas as pd
+        rows = []
+        for eid, e in self.elements.items():
+            p = self.rate(eid, gameweek)
+            if not p:
+                continue
+            fut = self.proj.horizon(e, gameweek + 1, gameweek + horizon)
+            rows.append({
+                "id": eid, "name": e["web_name"], "team": p["team"],
+                "pos": p["pos"], "et": e["element_type"],
+                "cost": self.selling.get(eid, e["now_cost"]), "now": e["now_cost"],
+                "adj": p["adj"], "model": p["model"], "fut": fut,
+                "score": p["adj"] + fut_weight * fut,
+                "avail": p["avail"], "status": e["status"],
+                "owned": eid in self.selling,
+            })
+        return pd.DataFrame(rows)
+
+
+def wildcard_squad(pool, budget, bench_weight=0.15, exclude=(),
+                   per_position=30, cheap_per_position=8, club_limit=3):
+    """Exact 15-man squad for a wildcard, solved as a mixed-integer program.
+
+    :param pool: DataFrame from :meth:`Squad.pool` (needs id, team, et, cost,
+        now, score, avail, status).
+    :param int budget: selling value of the current squad plus bank, 0.1m.
+    :param bench_weight: how much a bench player's score counts. Small but
+        not zero, so the solver buys substitutes who actually play rather
+        than the cheapest bodies available.
+    :param exclude: element ids to rule out on news the API has not caught
+        up with - a fever, a manager quote, a loan abroad.
+    :returns: the chosen 15 as a DataFrame with an ``xi`` column, starters
+        first, or None if the solver found no legal squad.
+
+    Needs ``pulp`` (bundles the CBC solver; pip-installable into the venv
+    without root). Only the ``per_position`` best per position plus the
+    ``cheap_per_position`` best enablers at £4.5m or under are offered to
+    the solver, which keeps it to a second or two; the discarded players
+    cannot appear in an optimal squad.
+
+    Re-run it with different ``exclude`` sets and ``fut_weight`` values and
+    look at what stays constant. The players that survive every variant are
+    the squad; the ones that come and go are the judgement calls.
+    """
+    import itertools
+    try:
+        import pulp
+    except ImportError as err:
+        raise ImportError("wildcard_squad needs pulp: .venv/bin/pip install pulp") from err
+    import pandas as pd
+
+    ok = pool[(pool.avail >= 0.9) & (pool.status == "a") & (~pool.id.isin(set(exclude)))]
+    keep = []
+    for et in (1, 2, 3, 4):
+        d = ok[ok.et == et].sort_values("score", ascending=False)
+        keep.append(d.head(per_position))
+        keep.append(d[d.now <= 45].head(cheap_per_position))
+    cands = pd.concat(keep).drop_duplicates("id").reset_index(drop=True)
+    n = range(len(cands))
+    x = {i: pulp.LpVariable(f"x{i}", cat="Binary") for i in n}
+    s = {i: pulp.LpVariable(f"s{i}", cat="Binary") for i in n}
+    prob = pulp.LpProblem("wildcard", pulp.LpMaximize)
+    prob += pulp.lpSum(s[i] * cands.score[i] + bench_weight * (x[i] - s[i]) * cands.score[i]
+                       for i in n)
+    for et, quota in ((1, 2), (2, 5), (3, 5), (4, 3)):
+        prob += pulp.lpSum(x[i] for i in n if cands.et[i] == et) == quota
+    prob += pulp.lpSum(x[i] * cands.cost[i] for i in n) <= budget
+    for team in cands.team.unique():
+        prob += pulp.lpSum(x[i] for i in n if cands.team[i] == team) <= club_limit
+    for i in n:
+        prob += s[i] <= x[i]
+    prob += pulp.lpSum(s[i] for i in n) == 11
+    prob += pulp.lpSum(s[i] for i in n if cands.et[i] == 1) == 1
+    prob += pulp.lpSum(s[i] for i in n if cands.et[i] == 2) >= 3
+    prob += pulp.lpSum(s[i] for i in n if cands.et[i] == 3) >= 2
+    prob += pulp.lpSum(s[i] for i in n if cands.et[i] == 4) >= 1
+    prob.solve(pulp.PULP_CBC_CMD(msg=0))
+    if pulp.LpStatus[prob.status] != "Optimal":
+        return None
+    chosen = cands[[x[i].value() > 0.5 for i in n]].copy()
+    chosen["xi"] = [s[i].value() > 0.5 for i in n if x[i].value() > 0.5]
+    return chosen.sort_values(["xi", "et", "score"], ascending=[False, True, False])

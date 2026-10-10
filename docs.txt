@@ -906,3 +906,39 @@ VERSION HISTORY
 
 v1.0 - Minutes-aware ratings, brute-force best XI, XI-delta transfer search
        with priced hits.
+
+WILDCARD (v1.1)
+---------------
+A wildcard is a different problem from a transfer: 15 players from scratch,
+under a budget, position quotas and the three-per-club limit, judged on the
+run ahead rather than one deadline. Greedy picking gets this wrong in ways
+that are hard to see (it will buy a £6.1m keeper and then find it cannot
+afford the striker), so it is solved exactly.
+
+  Squad.pool(gameweek, horizon=4, fut_weight=0.4) -> DataFrame
+    - every player rated: score = adj (this GW) + fut_weight * model
+      projection summed over the next `horizon` GWs
+    - cost = selling price if owned, now_cost otherwise, so "keep" is
+      priced correctly against "buy"
+
+  wildcard_squad(pool, budget, bench_weight=0.15, exclude=()) -> DataFrame
+    - mixed-integer program via pulp/CBC: maximise best legal XI score plus
+      bench_weight * bench score. Returns 15 rows with an `xi` column
+    - budget is selling value + bank in 0.1m units (read both from the
+      authenticated my-team endpoint, not from team_summary)
+    - exclude: ids ruled out on press news the API lacks
+
+HOW TO USE IT
+  Run it once, then re-run with the marginal players excluded and with
+  fut_weight at 0.25 and 0.6. The players present in every solution are the
+  squad; the ones that come and go are the judgement calls, and those get
+  decided on team news. GW6 2026/27: nine of eleven starters survived six
+  variants; Bogle/Hall and Cherki/Cunha were the two real decisions.
+
+  pulp is in requirements.txt and installs into the venv without root
+  (bundles its own CBC binary). First live use GW6 2026/27 - the chip went
+  through make_transfers(chip="wildcard"), the read-back showed the chip
+  "active" and transfers.made 0, so the chip write path is now verified too.
+
+VERSION HISTORY (fpl_optimise.py)
+v1.1 - Squad.pool() and wildcard_squad(): exact MILP squad rebuild.
