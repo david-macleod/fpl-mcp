@@ -219,11 +219,12 @@ nav.tabs label:hover{color:var(--chalk)}
 .sheet .mini figcaption .meta,.sheet .mini figcaption .opp{font-size:9px}
 .sheet .mini .armband{width:18px;height:18px;font-size:9px;right:-6px;top:-4px}
 .sheet .mini .bench{margin-top:14px}
-.swaps{display:flex;gap:10px;margin:14px 0 2px}
-.swap{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+.swaps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+  margin:14px 0 2px}
+.swap{display:flex;align-items:center;justify-content:center;gap:4px;
   background:var(--ink-2);border:1px solid var(--line);border-radius:14px;
-  padding:10px 6px 6px}
-.swap .shirt-card{width:80px;animation:none}
+  padding:8px 4px 4px}
+.swap .shirt-card{width:72px;animation:none}
 .swap .shirt-card:first-of-type{opacity:.5;filter:grayscale(.5)}
 .swap-arrow{color:var(--lime);font-size:22px;line-height:1;flex:none}
 .sheet .mini .bench-list li{padding:8px 10px 6px}
@@ -284,8 +285,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>Raya</b>
-          <span class="meta">ARS · £6.1m</span>
-          <span class="opp"><i class="d d3"></i>LEE (H)</span>
+          <span class="meta">ARS · £6.1m</span><span class="opp"><i class="d d3"></i>LEE (H)</span>
         </figcaption>
       </figure></div><div class="line line-def">
       <figure class="shirt-card normal">
@@ -296,8 +296,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg><span class="armband vice" title="Vice-captain">V</span></div>
         <figcaption>
           <b>Tarkowski</b>
-          <span class="meta">EVE · £6.1m</span>
-          <span class="opp"><i class="d d2"></i>HUL (A)</span>
+          <span class="meta">EVE · £6.1m</span><span class="opp"><i class="d d2"></i>HUL (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -308,8 +307,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>De Cuyper</b>
-          <span class="meta">BHA · £5.0m</span>
-          <span class="opp"><i class="d d3"></i>SUN (A)</span>
+          <span class="meta">BHA · £5.0m</span><span class="opp"><i class="d d3"></i>SUN (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -320,8 +318,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>Gvardiol</b>
-          <span class="meta">MCI · £5.7m</span>
-          <span class="opp"><i class="d d4"></i>LIV (A)</span>
+          <span class="meta">MCI · £5.7m</span><span class="opp"><i class="d d4"></i>LIV (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -332,8 +329,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>Bogle</b>
-          <span class="meta">LEE · £4.6m</span>
-          <span class="opp"><i class="d d5"></i>ARS (A)</span>
+          <span class="meta">LEE · £4.6m</span><span class="opp"><i class="d d5"></i>ARS (A)</span>
         </figcaption>
       </figure></div><div class="line line-mid">
       <figure class="shirt-card normal">
@@ -344,8 +340,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg><span class="armband" title="Captain">C</span></div>
         <figcaption>
           <b>Groß</b>
-          <span class="meta">BHA · £5.8m</span>
-          <span class="opp"><i class="d d3"></i>SUN (A)</span>
+          <span class="meta">BHA · £5.8m</span><span class="opp"><i class="d d3"></i>SUN (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -356,8 +351,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>Schade</b>
-          <span class="meta">BRE · £6.2m</span>
-          <span class="opp"><i class="d d3"></i>AVL (A)</span>
+          <span class="meta">BRE · £6.2m</span><span class="opp"><i class="d d3"></i>AVL (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -368,8 +362,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>Saka</b>
-          <span class="meta">ARS · £9.6m</span>
-          <span class="opp"><i class="d d3"></i>LEE (H)</span>
+          <span class="meta">ARS · £9.6m</span><span class="opp"><i class="d d3"></i>LEE (H)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -380,8 +373,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>Cherki</b>
-          <span class="meta">MCI · £7.7m</span>
-          <span class="opp"><i class="d d4"></i>LIV (A)</span>
+          <span class="meta">MCI · £7.7m</span><span class="opp"><i class="d d4"></i>LIV (A)</span>
         </figcaption>
       </figure></div><div class="line line-fwd">
       <figure class="shirt-card normal">
@@ -392,8 +384,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>Haaland</b>
-          <span class="meta">MCI · £15.6m</span>
-          <span class="opp"><i class="d d4"></i>LIV (A)</span>
+          <span class="meta">MCI · £15.6m</span><span class="opp"><i class="d d4"></i>LIV (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -404,8 +395,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>João Pedro</b>
-          <span class="meta">CHE · £7.6m</span>
-          <span class="opp"><i class="d d3"></i>BOU (H)</span>
+          <span class="meta">CHE · £7.6m</span><span class="opp"><i class="d d3"></i>BOU (H)</span>
         </figcaption>
       </figure></div></div>
       
@@ -421,8 +411,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>Verbruggen</b>
-          <span class="meta">BHA · £4.5m</span>
-          <span class="opp"><i class="d d3"></i>SUN (A)</span>
+          <span class="meta">BHA · £4.5m</span><span class="opp"><i class="d d3"></i>SUN (A)</span>
         </figcaption>
       </figure></li><li><span class="ord">1</span>
       <figure class="shirt-card small">
@@ -433,8 +422,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>Davis</b>
-          <span class="meta">IPS · £4.0m</span>
-          <span class="opp"><i class="d d2"></i>FUL (H)</span>
+          <span class="meta">IPS · £4.0m</span><span class="opp"><i class="d d2"></i>FUL (H)</span>
         </figcaption>
       </figure></li><li><span class="ord">2</span>
       <figure class="shirt-card small">
@@ -445,8 +433,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>Janelt</b>
-          <span class="meta">BRE · £5.0m</span>
-          <span class="opp"><i class="d d3"></i>AVL (A)</span>
+          <span class="meta">BRE · £5.0m</span><span class="opp"><i class="d d3"></i>AVL (A)</span>
         </figcaption>
       </figure></li><li><span class="ord">3</span>
       <figure class="shirt-card small">
@@ -457,8 +444,7 @@ nav.tabs label:hover{color:var(--chalk)}
           </svg></div>
         <figcaption>
           <b>Calvert-Lewin</b>
-          <span class="meta">LEE · £6.0m</span>
-          <span class="opp"><i class="d d5"></i>ARS (A)</span>
+          <span class="meta">LEE · £6.0m</span><span class="opp"><i class="d d5"></i>ARS (A)</span>
         </figcaption>
       </figure></li></ol>
     </section>
@@ -646,8 +632,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Raya</b>
-          <span class="meta">ARS · £6.1m</span>
-          <span class="opp"><i class="d d3"></i>LEE (H)</span>
+          <span class="meta">ARS · £6.1m</span><span class="opp"><i class="d d3"></i>LEE (H)</span>
         </figcaption>
       </figure></div><div class="line line-def">
       <figure class="shirt-card normal">
@@ -658,8 +643,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg><span class="armband vice" title="Vice-captain">V</span></div>
         <figcaption>
           <b>Tarkowski</b>
-          <span class="meta">EVE · £6.1m</span>
-          <span class="opp"><i class="d d2"></i>HUL (A)</span>
+          <span class="meta">EVE · £6.1m</span><span class="opp"><i class="d d2"></i>HUL (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -670,8 +654,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>De Cuyper</b>
-          <span class="meta">BHA · £5.0m</span>
-          <span class="opp"><i class="d d3"></i>SUN (A)</span>
+          <span class="meta">BHA · £5.0m</span><span class="opp"><i class="d d3"></i>SUN (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -682,8 +665,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Gvardiol</b>
-          <span class="meta">MCI · £5.7m</span>
-          <span class="opp"><i class="d d4"></i>LIV (A)</span>
+          <span class="meta">MCI · £5.7m</span><span class="opp"><i class="d d4"></i>LIV (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -694,8 +676,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Bogle</b>
-          <span class="meta">LEE · £4.6m</span>
-          <span class="opp"><i class="d d5"></i>ARS (A)</span>
+          <span class="meta">LEE · £4.6m</span><span class="opp"><i class="d d5"></i>ARS (A)</span>
         </figcaption>
       </figure></div><div class="line line-mid">
       <figure class="shirt-card normal">
@@ -706,8 +687,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg><span class="armband" title="Captain">C</span></div>
         <figcaption>
           <b>Groß</b>
-          <span class="meta">BHA · £5.8m</span>
-          <span class="opp"><i class="d d3"></i>SUN (A)</span>
+          <span class="meta">BHA · £5.8m</span><span class="opp"><i class="d d3"></i>SUN (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -718,8 +698,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Schade</b>
-          <span class="meta">BRE · £6.2m</span>
-          <span class="opp"><i class="d d3"></i>AVL (A)</span>
+          <span class="meta">BRE · £6.2m</span><span class="opp"><i class="d d3"></i>AVL (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -730,8 +709,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Saka</b>
-          <span class="meta">ARS · £9.6m</span>
-          <span class="opp"><i class="d d3"></i>LEE (H)</span>
+          <span class="meta">ARS · £9.6m</span><span class="opp"><i class="d d3"></i>LEE (H)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -742,8 +720,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Cherki</b>
-          <span class="meta">MCI · £7.7m</span>
-          <span class="opp"><i class="d d4"></i>LIV (A)</span>
+          <span class="meta">MCI · £7.7m</span><span class="opp"><i class="d d4"></i>LIV (A)</span>
         </figcaption>
       </figure></div><div class="line line-fwd">
       <figure class="shirt-card normal">
@@ -754,8 +731,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Haaland</b>
-          <span class="meta">MCI · £15.6m</span>
-          <span class="opp"><i class="d d4"></i>LIV (A)</span>
+          <span class="meta">MCI · £15.6m</span><span class="opp"><i class="d d4"></i>LIV (A)</span>
         </figcaption>
       </figure>
       <figure class="shirt-card normal">
@@ -766,8 +742,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>João Pedro</b>
-          <span class="meta">CHE · £7.6m</span>
-          <span class="opp"><i class="d d3"></i>BOU (H)</span>
+          <span class="meta">CHE · £7.6m</span><span class="opp"><i class="d d3"></i>BOU (H)</span>
         </figcaption>
       </figure></div></div>
     <section class="bench">
@@ -782,8 +757,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Verbruggen</b>
-          <span class="meta">BHA · £4.5m</span>
-          <span class="opp"><i class="d d3"></i>SUN (A)</span>
+          <span class="meta">BHA · £4.5m</span><span class="opp"><i class="d d3"></i>SUN (A)</span>
         </figcaption>
       </figure></li><li><span class="ord">1</span>
       <figure class="shirt-card small">
@@ -794,8 +768,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Davis</b>
-          <span class="meta">IPS · £4.0m</span>
-          <span class="opp"><i class="d d2"></i>FUL (H)</span>
+          <span class="meta">IPS · £4.0m</span><span class="opp"><i class="d d2"></i>FUL (H)</span>
         </figcaption>
       </figure></li><li><span class="ord">2</span>
       <figure class="shirt-card small">
@@ -806,8 +779,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Janelt</b>
-          <span class="meta">BRE · £5.0m</span>
-          <span class="opp"><i class="d d3"></i>AVL (A)</span>
+          <span class="meta">BRE · £5.0m</span><span class="opp"><i class="d d3"></i>AVL (A)</span>
         </figcaption>
       </figure></li><li><span class="ord">3</span>
       <figure class="shirt-card small">
@@ -818,8 +790,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Calvert-Lewin</b>
-          <span class="meta">LEE · £6.0m</span>
-          <span class="opp"><i class="d d5"></i>ARS (A)</span>
+          <span class="meta">LEE · £6.0m</span><span class="opp"><i class="d d5"></i>ARS (A)</span>
         </figcaption>
       </figure></li></ol>
     </section></div>
@@ -846,8 +817,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Thiago</b>
-          <span class="meta">BRE · £7.8m</span>
-          <span class="opp"><i class="d d3"></i>AVL (A)</span>
+          <span class="meta">BRE</span>
         </figcaption>
       </figure>
           <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
@@ -860,8 +830,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Haaland</b>
-          <span class="meta">MCI · £15.6m</span>
-          <span class="opp"><i class="d d4"></i>LIV (A)</span>
+          <span class="meta">MCI</span>
         </figcaption>
       </figure>
         </div>
@@ -875,8 +844,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>B.Fernandes</b>
-          <span class="meta">MUN · £11.9m</span>
-          <span class="opp"><i class="d d2"></i>TOT (H)</span>
+          <span class="meta">MUN</span>
         </figcaption>
       </figure>
           <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
@@ -889,8 +857,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Saka</b>
-          <span class="meta">ARS · £9.6m</span>
-          <span class="opp"><i class="d d3"></i>LEE (H)</span>
+          <span class="meta">ARS</span>
         </figcaption>
       </figure>
         </div>
@@ -904,8 +871,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Gabriel</b>
-          <span class="meta">ARS · £8.0m</span>
-          <span class="opp"><i class="d d3"></i>LEE (H)</span>
+          <span class="meta">ARS</span>
         </figcaption>
       </figure>
           <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
@@ -918,8 +884,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Gvardiol</b>
-          <span class="meta">MCI · £5.7m</span>
-          <span class="opp"><i class="d d4"></i>LIV (A)</span>
+          <span class="meta">MCI</span>
         </figcaption>
       </figure>
         </div>
@@ -933,8 +898,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Guéhi</b>
-          <span class="meta">MCI · £6.0m</span>
-          <span class="opp"><i class="d d4"></i>LIV (A)</span>
+          <span class="meta">MCI</span>
         </figcaption>
       </figure>
           <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
@@ -947,8 +911,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>De Cuyper</b>
-          <span class="meta">BHA · £5.0m</span>
-          <span class="opp"><i class="d d3"></i>SUN (A)</span>
+          <span class="meta">BHA</span>
         </figcaption>
       </figure>
         </div>
@@ -962,8 +925,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Gibbs-White</b>
-          <span class="meta">NFO · £8.0m</span>
-          <span class="opp"><i class="d d3"></i>CRY (A)</span>
+          <span class="meta">NFO</span>
         </figcaption>
       </figure>
           <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
@@ -976,8 +938,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Janelt</b>
-          <span class="meta">BRE · £5.0m</span>
-          <span class="opp"><i class="d d3"></i>AVL (A)</span>
+          <span class="meta">BRE</span>
         </figcaption>
       </figure>
         </div>
@@ -991,8 +952,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Scott</b>
-          <span class="meta">BOU · £6.1m</span>
-          <span class="opp"><i class="d d4"></i>CHE (A)</span>
+          <span class="meta">BOU</span>
         </figcaption>
       </figure>
           <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
@@ -1005,8 +965,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Schade</b>
-          <span class="meta">BRE · £6.2m</span>
-          <span class="opp"><i class="d d3"></i>AVL (A)</span>
+          <span class="meta">BRE</span>
         </figcaption>
       </figure>
         </div>
@@ -1020,8 +979,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>N.Williams</b>
-          <span class="meta">NFO · £5.0m</span>
-          <span class="opp"><i class="d d3"></i>CRY (A)</span>
+          <span class="meta">NFO</span>
         </figcaption>
       </figure>
           <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
@@ -1034,8 +992,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Bogle</b>
-          <span class="meta">LEE · £4.6m</span>
-          <span class="opp"><i class="d d5"></i>ARS (A)</span>
+          <span class="meta">LEE</span>
         </figcaption>
       </figure>
         </div>
@@ -1049,8 +1006,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Mukiele</b>
-          <span class="meta">SUN · £5.4m</span>
-          <span class="opp"><i class="d d3"></i>BHA (H)</span>
+          <span class="meta">SUN</span>
         </figcaption>
       </figure>
           <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
@@ -1063,8 +1019,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Davis</b>
-          <span class="meta">IPS · £4.0m</span>
-          <span class="opp"><i class="d d2"></i>FUL (H)</span>
+          <span class="meta">IPS</span>
         </figcaption>
       </figure>
         </div>
@@ -1078,8 +1033,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Dubravka</b>
-          <span class="meta">TOT · £4.0m</span>
-          <span class="opp"><i class="d d4"></i>MUN (A)</span>
+          <span class="meta">TOT</span>
         </figcaption>
       </figure>
           <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
@@ -1092,8 +1046,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Raya</b>
-          <span class="meta">ARS · £6.1m</span>
-          <span class="opp"><i class="d d3"></i>LEE (H)</span>
+          <span class="meta">ARS</span>
         </figcaption>
       </figure>
         </div>
@@ -1107,8 +1060,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Obi</b>
-          <span class="meta">MUN · £4.5m</span>
-          <span class="opp"><i class="d d2"></i>TOT (H)</span>
+          <span class="meta">MUN</span>
         </figcaption>
       </figure>
           <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
@@ -1121,8 +1073,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
           </svg></div>
         <figcaption>
           <b>Calvert-Lewin</b>
-          <span class="meta">LEE · £6.0m</span>
-          <span class="opp"><i class="d d5"></i>ARS (A)</span>
+          <span class="meta">LEE</span>
         </figcaption>
       </figure>
         </div></div>
@@ -1152,7 +1103,7 @@ The squad was built as an exact optimisation rather than by hand: every eligible
 </script>
 
 <footer>
-  <span>Generated 2026-10-10 07:07 UTC</span>
+  <span>Generated 2026-10-10 09:37 UTC</span>
   <span>Fantasy Premier League · entry 3593814</span>
 </footer>
 </div>

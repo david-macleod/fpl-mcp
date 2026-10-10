@@ -176,22 +176,28 @@ def _kit_svg(team):
           </svg>"""
 
 
-def _shirt(player, size="normal"):
+def _shirt(player, size="normal", compact=False):
     badge = ""
     if player.is_captain:
         badge = '<span class="armband" title="Captain">C</span>'
     elif player.is_vice:
         badge = '<span class="armband vice" title="Vice-captain">V</span>'
 
-    diff = f'<i class="d d{player.difficulty}"></i>' if player.difficulty else ""
+    if compact:
+        # Transfer strip: name and club only. Price and fixture earn their
+        # keep on the pitch, not in a 10-swap wildcard grid.
+        detail = f'<span class="meta">{e(player.team)}</span>'
+    else:
+        diff = f'<i class="d d{player.difficulty}"></i>' if player.difficulty else ""
+        detail = (f'<span class="meta">{e(player.team)} · £{player.price:.1f}m</span>'
+                  f'<span class="opp">{diff}{e(player.opponent)}</span>')
 
     return f"""
       <figure class="shirt-card {size}">
         <div class="shirt">{_kit_svg(player.team)}{badge}</div>
         <figcaption>
           <b>{e(player.name)}</b>
-          <span class="meta">{e(player.team)} · £{player.price:.1f}m</span>
-          <span class="opp">{diff}{e(player.opponent)}</span>
+          {detail}
         </figcaption>
       </figure>"""
 
@@ -528,11 +534,12 @@ nav.tabs label:hover{color:var(--chalk)}
 .sheet .mini figcaption .meta,.sheet .mini figcaption .opp{font-size:9px}
 .sheet .mini .armband{width:18px;height:18px;font-size:9px;right:-6px;top:-4px}
 .sheet .mini .bench{margin-top:14px}
-.swaps{display:flex;gap:10px;margin:14px 0 2px}
-.swap{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+.swaps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+  margin:14px 0 2px}
+.swap{display:flex;align-items:center;justify-content:center;gap:4px;
   background:var(--ink-2);border:1px solid var(--line);border-radius:14px;
-  padding:10px 6px 6px}
-.swap .shirt-card{width:80px;animation:none}
+  padding:8px 4px 4px}
+.swap .shirt-card{width:72px;animation:none}
 .swap .shirt-card:first-of-type{opacity:.5;filter:grayscale(.5)}
 .swap-arrow{color:var(--lime);font-size:22px;line-height:1;flex:none}
 .sheet .mini .bench-list li{padding:8px 10px 6px}
@@ -696,9 +703,9 @@ def _team_sheet(report, pitch, shape):
     if report.transfers:
         rows = "".join(f"""
         <div class="swap">
-          {_shirt(t.out, "small")}
+          {_shirt(t.out, "small", compact=True)}
           <span class="swap-arrow" aria-label="replaced by">&#10142;</span>
-          {_shirt(t.into, "small")}
+          {_shirt(t.into, "small", compact=True)}
         </div>""" for t in report.transfers)
         swaps = f'<div class="swaps">{rows}</div>'
 
